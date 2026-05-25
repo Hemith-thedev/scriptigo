@@ -49,7 +49,7 @@ async function initializeDatabase() {
       await database.query(`
         CREATE TABLE IF NOT EXISTS genres (
           genre_id INT AUTO_INCREMENT PRIMARY KEY,
-          genre_name VARCHAR(50) NOT NULL UNIQUE,
+          name VARCHAR(50) NOT NULL UNIQUE,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         );
@@ -179,14 +179,14 @@ async function initializeDatabase() {
 // 1. Create Tag
 app.post("/api/tags", async (req, res) => {
   const { name, color } = req.body;
-  if (!name) {
-    return res.status(400).json({ status: "error", message: "Tag name is required" });
+  if (!name || !color) {
+    return res.status(400).json({ status: "error", message: "Tag name and color are required" });
   }
 
   const query = `INSERT INTO tags (name, color) VALUES (?, ?)`;
   try {
     const [result] = await database.query(query, [name.trim(), color || '#FFD700']);
-    res.status(201).json({ status: "success", id: result.insertId });
+    return res.status(201).json({ status: "success", id: result.insertId });
   } catch (error) {
     if (error.code === "ER_DUP_ENTRY") {
       return res.status(409).json({ status: "error", message: "Tag name already exists" });
@@ -198,7 +198,7 @@ app.post("/api/tags", async (req, res) => {
 // 2. Fetch All Tags
 app.get("/api/tags", async (req, res) => {
   try {
-    const [rows] = await database.query(`SELECT id, name, color, created_at FROM tags ORDER BY name ASC`);
+    const [rows] = await database.query(`SELECT * FROM tags ORDER BY name ASC`);
     res.status(200).json({ status: "success", data: rows });
   } catch (error) {
     res.status(500).json({ status: "error", message: "Failed to fetch tags" });
@@ -229,15 +229,42 @@ app.post("/api/scripts/:id/tags", async (req, res) => {
   }
 });
 
+app.put("/api/tags/:id", async (req, res) => {
+  const { id } = req.params;
+  const { name, color } = req.body;
+  if (!name) return res.status(400).json({ status: "error", message: "New tag name is required" });
+  const query = `UPDATE tags SET name = ?, color = ? WHERE id = ?`;
+  try {
+    const [result] = await database.query(query, [name, color || '#FFD700', id]);
+    if (result.affectedRows === 0) return res.status(404).json({ status: "error", message: "Tag not found" });
+    res.status(200).json({ status: "success", message: "Tag updated successfully" });
+  } catch (error) {
+    res.status(500).json({ status: "error", message: "Database update failed" });
+    console.error(error);
+  }
+});
+
+app.delete("/api/tag/:id", async (req, res) => {
+  const { id } = req.params;
+  const query = `DELETE FROM tags WHERE id = ?`;
+  try {
+    const [result] = await database.query(query, [id]);
+    if (result.affectedRows === 0) return res.status(404).json({ status: "error", message: "Genre not found" });
+    res.status(200).json({ status: "success", message: "Tag deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ status: "error", message: "Could not delete tag" });
+  }
+});
+
 // ==========================================
 // GENRES ROUTES
 // ==========================================
 app.post("/api/genres", async (req, res) => {
-  const { genre_name } = req.body;
-  if (!genre_name) return res.status(400).json({ status: "error", message: "Genre name is required" });
-  const query = `INSERT INTO genres (genre_name) VALUES (?)`;
+  const { name } = req.body;
+  if (!name) return res.status(400).json({ status: "error", message: "Genre name is required" });
+  const query = `INSERT INTO genres (name) VALUES (?)`;
   try {
-    const [result] = await database.query(query, [genre_name.trim()]);
+    const [result] = await database.query(query, [name.trim()]);
     res.status(201).json({ status: "success", message: "Genre created successfully", id: result.insertId });
   } catch (error) {
     if (error.code === "ER_DUP_ENTRY") return res.status(409).json({ status: "error", message: "Genre already exists" });
@@ -246,7 +273,7 @@ app.post("/api/genres", async (req, res) => {
 });
 
 app.get("/api/genres", async (req, res) => {
-  const query = `SELECT genre_id, genre_name, created_at FROM genres ORDER BY genre_name ASC`;
+  const query = `SELECT * FROM genres ORDER BY name ASC`;
   try {
     const [rows] = await database.query(query);
     res.status(200).json({ status: "success", data: rows });
@@ -257,11 +284,11 @@ app.get("/api/genres", async (req, res) => {
 
 app.put("/api/genres/:id", async (req, res) => {
   const { id } = req.params;
-  const { genre_name } = req.body;
-  if (!genre_name) return res.status(400).json({ status: "error", message: "New genre name is required" });
-  const query = `UPDATE genres SET genre_name = ? WHERE genre_id = ?`;
+  const { name } = req.body;
+  if (!name) return res.status(400).json({ status: "error", message: "New genre name is required" });
+  const query = `UPDATE genres SET name = ? WHERE id = ?`;
   try {
-    const [result] = await database.query(query, [genre_name.trim(), id]);
+    const [result] = await database.query(query, [name.trim(), id]);
     if (result.affectedRows === 0) return res.status(404).json({ status: "error", message: "Genre not found" });
     res.status(200).json({ status: "success", message: "Genre updated successfully" });
   } catch (error) {
@@ -297,7 +324,7 @@ app.post("/api/stories", async (req, res) => {
 });
 
 app.get("/api/stories", async (req, res) => {
-  const query = `SELECT id, title, genres, created_at FROM stories ORDER BY created_at DESC`;
+  const query = `SELECT * FROM stories ORDER BY created_at DESC`;
   try {
     const [rows] = await database.query(query);
     res.status(200).json({ status: "success", data: rows });

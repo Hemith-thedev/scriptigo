@@ -3,11 +3,14 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import Header from "./components/layout/Header.jsx";
 
 import Dashboard from "./pages/Dashboard.jsx";
+import StoriesPage from "./pages/Stories.jsx";
+import GenresPage from "./pages/Genres.jsx";
+import TagsPage from "./pages/Tags.jsx";
 
 function InitAppWindow({ visibleIf, onclick }) {
   return (
     <div className={`init-app-window ${visibleIf ? "" : "hidden"}`}>
-      <div className="wrapper">
+      <div className="flex flex-col justify-center items-center">
         <h1>Scriptigo</h1>
         <p>Script with Flow!✨</p>
         <button className="primary-button" onClick={onclick}>
@@ -24,7 +27,7 @@ function App() {
   return (
     <>
       <InitAppWindow
-        visibleIf={showWindow}
+        visibleIf={showWindow && window.location === "/"}
         onclick={() => {
           setShowWindow(false);
         }}
@@ -32,6 +35,9 @@ function App() {
       <Header />
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/stories" element={<StoriesPage />} />
+        <Route path="/genres" element={<GenresPage />} />
+        <Route path="/tags" element={<TagsPage />} />
       </Routes>
     </>
   );
