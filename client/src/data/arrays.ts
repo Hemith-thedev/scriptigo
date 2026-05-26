@@ -1,4 +1,4 @@
-export const genres = [
+export const genres: string[] = [
   "Action",
   "Anime",
   "Animation",

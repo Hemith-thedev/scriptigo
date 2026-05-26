@@ -25,9 +25,6 @@ export default function StoriesPage() {
       console.error("Error fetching genres:", error);
     }
   };
-  useEffect(() => {
-    fetchGenres();
-  }, []);
   const fetchStories = async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/stories");
@@ -37,6 +34,7 @@ export default function StoriesPage() {
     }
   };
   useEffect(() => {
+    fetchGenres();
     fetchStories();
   }, []);
   const Divider = () => (
@@ -65,9 +63,12 @@ export default function StoriesPage() {
     };
     const handleDelete = async (id) => {
       try {
-        const res = await axios.delete(`http://localhost:5000/api/stories/${id}`);
+        const res = await axios.delete(
+          `http://localhost:5000/api/stories/${id}`,
+        );
         setPlaceholder(res.data.message);
         fetchGenres();
+        fetchStories();
         setPlaceholder("Genre deleted successfully! 👍🏻");
         setTimeout(() => setPlaceholder("Name"), 2000);
       } catch (error) {
@@ -83,6 +84,7 @@ export default function StoriesPage() {
         setPlaceholder(res.data.message);
         setIsEditing(false);
         fetchGenres();
+        fetchStories();
         setPlaceholder("Genre updated successfully! 😎");
         setTimeout(() => setPlaceholder("Name"), 2000);
       } catch (error) {
@@ -195,7 +197,7 @@ export default function StoriesPage() {
       fetchGenres();
       setData({
         title: "",
-        genres: []
+        genres: [],
       });
       setPlaceholder(res.data.message);
       setTimeout(() => {
@@ -242,7 +244,6 @@ export default function StoriesPage() {
                           ...prev,
                           genres: selectedValues,
                         }));
-                        console.log(selectedValues);
                       }}
                       ontoggle={() =>
                         setGenresDropdownOpen(!genresDropdownOpen)

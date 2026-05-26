@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { MdHistory } from "react-icons/md";
-import { IoMdArrowDropleft, IoMdArrowDropright } from "react-icons/io";
 import { GiPerspectiveDiceSixFacesRandom } from "react-icons/gi";
 import { RiResetLeftFill } from "react-icons/ri";
 
-export default function ColorPicker({ onchange = () => String, onselect = () => String, reset }) {
-  const [selectedColor, setSelectedColor] = useState("");
+export default function ColorPicker({
+  onchange = () => String,
+  onselect = () => String,
+  reset,
+}) {
+  const [_, setSelectedColor] = useState("");
   const [hue, setHue] = useState(0);
   const [saturation, setSaturation] = useState(0);
   const [lightness, setLightness] = useState(100);
@@ -14,7 +17,7 @@ export default function ColorPicker({ onchange = () => String, onselect = () => 
   );
   const [isOpen, setIsOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const color = { hue: hue, saturation: saturation, lightness, lightness };
+  const color = { hue: hue, saturation: saturation, lightness: lightness };
   const [elementHovered, setElementHovered] = useState({
     hue: true,
     saturation: true,
@@ -51,7 +54,7 @@ export default function ColorPicker({ onchange = () => String, onselect = () => 
     onselect(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
     setSelectedColor(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
     setIsOpen(false);
-  }
+  };
   useEffect(() => {
     if (reset) {
       setHue(0);
@@ -76,8 +79,7 @@ export default function ColorPicker({ onchange = () => String, onselect = () => 
             backgroundColor: `hsl(${hue}, ${saturation}%, ${lightness}%)`,
           }}
           className="flex justify-center items-center h-full w-full rounded-xl"
-        >
-        </div>
+        ></div>
       </button>
       <div
         className={`absolute ${isOpen ? "top-16 pointer-events-auto blur-none opacity-100" : "top-20 pointer-events-none blur-xl opacity-0"} z-50 flex flex-col justify-start items-start gap-2 max-h-84 w-full p-1.5 rounded-2xl bg-black-light/40 backdrop-blur-lg border border-white/10 overflow-y-auto no-scrollbar`}
@@ -130,7 +132,7 @@ export default function ColorPicker({ onchange = () => String, onselect = () => 
               value={hue}
               min={0}
               max={360}
-              onChange={(e) => setHue(e.target.value)}
+              onChange={(e) => setHue(Number(e.target.value))}
               className="hue"
               onMouseOver={() =>
                 setElementHovered((prev) => ({
@@ -157,7 +159,7 @@ export default function ColorPicker({ onchange = () => String, onselect = () => 
               value={saturation}
               min={0}
               max={100}
-              onChange={(e) => setSaturation(e.target.value)}
+              onChange={(e) => setSaturation(Number(e.target.value))}
               className="saturation"
               style={{
                 background: `linear-gradient(to right, black, hsl(${hue}, 100%, 50%))`,
@@ -185,7 +187,7 @@ export default function ColorPicker({ onchange = () => String, onselect = () => 
               value={lightness}
               min={0}
               max={100}
-              onChange={(e) => setLightness(e.target.value)}
+              onChange={(e) => setLightness(Number(e.target.value))}
               className="lightness"
               style={{
                 background: `linear-gradient(to right, black, hsl(${hue}, ${saturation}%, 50%), white)`,

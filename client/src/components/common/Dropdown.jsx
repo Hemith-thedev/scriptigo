@@ -70,7 +70,10 @@ export default function Dropdown({
       : placeholder;
 
   return (
-    <div className="relative flex flex-col justify-start items-center h-full w-full" ref={dropdownRef}>
+    <div
+      className="relative flex flex-col justify-start items-center h-full w-full"
+      ref={dropdownRef}
+    >
       <button
         className="flex justify-between items-center h-full w-full border-b-2 border-b-gold-20 px-2 outline-none"
         onClick={() => ontoggle()}

@@ -1,23 +1,27 @@
-import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { BiSolidCog } from "react-icons/bi";
-import { RxCross2 } from "react-icons/rx";
+
+import { useLocation, useParams } from "react-router-dom";
 import { IoIosArrowBack } from "react-icons/io";
 
 const Header = () => {
   const location = useLocation();
-  const navigate = useNavigate();
-  const [pageHeading, setPageHeading] = useState("");
-  const PageHeadingElement = ({route}) => {
+  const PageHeadingElement = ({ route }: { route: string }) => {
     let heading = "";
     if (route === "/stories") heading = "Stories";
     if (route === "/genres") heading = "Genres";
     if (route === "/tags") heading = "Tags";
     if (route === "/trash") heading = "Trash";
+    if (route === "/link-to") heading = "Links";
+    if (route.startsWith("/link-to/story/")) {
+      const id = location.pathname.charAt(15);
+      heading = `Story ${id}`
+    }
     return (
-      <span> | <span className="highlight gradient">{heading}</span></span>
-    )
-  }
+      <span>
+        {" "}
+        | <span className="highlight gradient">{heading}</span>
+      </span>
+    );
+  };
   return (
     <>
       <header className="flex justify-center items-center h-fit w-full shadow-2xl shadow-gold-20 z-50">
@@ -35,7 +39,11 @@ const Header = () => {
             </div>
             <p className="text-[2rem] h-fit w-fit font-medium">
               <span className="highlight gradient">Scriptigo</span>
-              {(location.pathname === "/") ? <></> : <PageHeadingElement route={location.pathname} />}
+              {location.pathname === "/" ? (
+                <></>
+              ) : (
+                <PageHeadingElement route={location.pathname} />
+              )}
             </p>
           </div>
           {/* <div className="settings">

@@ -125,7 +125,7 @@ export default function Dashboard() {
                 },
                 { label: (genres.length < 2) ? "Genre" : "Genres", count: genres.length, path: "/genres" },
                 { label: (tags.length < 2) ? "Tag" : "Tags", count: tags.length, path: "/tags" },
-                { label: "Temporary scripts", count: 5, path: "/trash" },
+                { label: "Links", path: "/link-to" },
               ].map((card, index) => (
                 <NavLink key={index} className="kpi-card" to={card.path}>
                   <div>

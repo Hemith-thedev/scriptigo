@@ -32,7 +32,7 @@ async function initializeDatabase() {
 
     database = await mysql.createPool({
       ...dbConfig,
-      multipleStatements: true // Multi query execution patterns support tracking
+      multipleStatements: true, // Multi query execution patterns support tracking
     });
     console.log("Database: ✅ Connected");
 
@@ -161,7 +161,14 @@ async function initializeDatabase() {
     }
 
     // Final Confirmation Logic
-    if (genresCreated && storiesCreated && scriptsCreated && tagsCreated && scriptTagsCreated && versionsCreated) {
+    if (
+      genresCreated &&
+      storiesCreated &&
+      scriptsCreated &&
+      tagsCreated &&
+      scriptTagsCreated &&
+      versionsCreated
+    ) {
       console.log(`Database: 🚀 Full Setup Ready for ${dbConfig.database}`);
     } else {
       console.log(`Database: ⚠️ Partial Setup - Check table dependencies!`);
@@ -180,18 +187,27 @@ async function initializeDatabase() {
 app.post("/api/tags", async (req, res) => {
   const { name, color } = req.body;
   if (!name || !color) {
-    return res.status(400).json({ status: "error", message: "Tag name and color are required" });
+    return res
+      .status(400)
+      .json({ status: "error", message: "Tag name and color are required" });
   }
 
   const query = `INSERT INTO tags (name, color) VALUES (?, ?)`;
   try {
-    const [result] = await database.query(query, [name.trim(), color || '#FFD700']);
+    const [result] = await database.query(query, [
+      name.trim(),
+      color || "#FFD700",
+    ]);
     return res.status(201).json({ status: "success", id: result.insertId });
   } catch (error) {
     if (error.code === "ER_DUP_ENTRY") {
-      return res.status(409).json({ status: "error", message: "Tag name already exists" });
+      return res
+        .status(409)
+        .json({ status: "error", message: "Tag name already exists" });
     }
-    res.status(500).json({ status: "error", message: "Database creation failed" });
+    res
+      .status(500)
+      .json({ status: "error", message: "Database creation failed" });
   }
 });
 
@@ -211,7 +227,10 @@ app.post("/api/scripts/:id/tags", async (req, res) => {
   const { tag_ids } = req.body; // Array expected: [1, 2, 4]
 
   if (!Array.isArray(tag_ids)) {
-    return res.status(400).json({ status: "error", message: "Tag IDs must be an array formatted entity" });
+    return res.status(400).json({
+      status: "error",
+      message: "Tag IDs must be an array formatted entity",
+    });
   }
 
   try {
@@ -219,27 +238,48 @@ app.post("/api/scripts/:id/tags", async (req, res) => {
     await database.query(`DELETE FROM script_tags WHERE id = ?`, [script_id]);
 
     if (tag_ids.length > 0) {
-      const values = tag_ids.map(tag_id => [script_id, tag_id]);
-      await database.query(`INSERT INTO script_tags (id, tag_id) VALUES ?`, [values]);
+      const values = tag_ids.map((tag_id) => [script_id, tag_id]);
+      await database.query(`INSERT INTO script_tags (id, tag_id) VALUES ?`, [
+        values,
+      ]);
     }
 
-    res.status(200).json({ status: "success", message: "Script line linked tags updated" });
+    res
+      .status(200)
+      .json({ status: "success", message: "Script line linked tags updated" });
   } catch (error) {
-    res.status(500).json({ status: "error", message: "Link compilation parameters alignment failed" });
+    res.status(500).json({
+      status: "error",
+      message: "Link compilation parameters alignment failed",
+    });
   }
 });
 
 app.put("/api/tags/:id", async (req, res) => {
   const { id } = req.params;
   const { name, color } = req.body;
-  if (!name) return res.status(400).json({ status: "error", message: "New tag name is required" });
+  if (!name)
+    return res
+      .status(400)
+      .json({ status: "error", message: "New tag name is required" });
   const query = `UPDATE tags SET name = ?, color = ? WHERE id = ?`;
   try {
-    const [result] = await database.query(query, [name, color || '#FFD700', id]);
-    if (result.affectedRows === 0) return res.status(404).json({ status: "error", message: "Tag not found" });
-    res.status(200).json({ status: "success", message: "Tag updated successfully" });
+    const [result] = await database.query(query, [
+      name,
+      color || "#FFD700",
+      id,
+    ]);
+    if (result.affectedRows === 0)
+      return res
+        .status(404)
+        .json({ status: "error", message: "Tag not found" });
+    res
+      .status(200)
+      .json({ status: "success", message: "Tag updated successfully" });
   } catch (error) {
-    res.status(500).json({ status: "error", message: "Database update failed" });
+    res
+      .status(500)
+      .json({ status: "error", message: "Database update failed" });
     console.error(error);
   }
 });
@@ -249,8 +289,13 @@ app.delete("/api/tag/:id", async (req, res) => {
   const query = `DELETE FROM tags WHERE id = ?`;
   try {
     const [result] = await database.query(query, [id]);
-    if (result.affectedRows === 0) return res.status(404).json({ status: "error", message: "Genre not found" });
-    res.status(200).json({ status: "success", message: "Tag deleted successfully" });
+    if (result.affectedRows === 0)
+      return res
+        .status(404)
+        .json({ status: "error", message: "Genre not found" });
+    res
+      .status(200)
+      .json({ status: "success", message: "Tag deleted successfully" });
   } catch (error) {
     res.status(500).json({ status: "error", message: "Could not delete tag" });
   }
@@ -261,13 +306,23 @@ app.delete("/api/tag/:id", async (req, res) => {
 // ==========================================
 app.post("/api/genres", async (req, res) => {
   const { name } = req.body;
-  if (!name) return res.status(400).json({ status: "error", message: "Genre name is required" });
+  if (!name)
+    return res
+      .status(400)
+      .json({ status: "error", message: "Genre name is required" });
   const query = `INSERT INTO genres (name) VALUES (?)`;
   try {
     const [result] = await database.query(query, [name.trim()]);
-    res.status(201).json({ status: "success", message: "Genre created successfully", id: result.insertId });
+    res.status(201).json({
+      status: "success",
+      message: "Genre created successfully",
+      id: result.insertId,
+    });
   } catch (error) {
-    if (error.code === "ER_DUP_ENTRY") return res.status(409).json({ status: "error", message: "Genre already exists" });
+    if (error.code === "ER_DUP_ENTRY")
+      return res
+        .status(409)
+        .json({ status: "error", message: "Genre already exists" });
     res.status(500).json({ status: "error", message: "Internal server error" });
   }
 });
@@ -278,21 +333,33 @@ app.get("/api/genres", async (req, res) => {
     const [rows] = await database.query(query);
     res.status(200).json({ status: "success", data: rows });
   } catch (error) {
-    res.status(500).json({ status: "error", message: "Failed to fetch genres" });
+    res
+      .status(500)
+      .json({ status: "error", message: "Failed to fetch genres" });
   }
 });
 
 app.put("/api/genres/:id", async (req, res) => {
   const { id } = req.params;
   const { name } = req.body;
-  if (!name) return res.status(400).json({ status: "error", message: "New genre name is required" });
+  if (!name)
+    return res
+      .status(400)
+      .json({ status: "error", message: "New genre name is required" });
   const query = `UPDATE genres SET name = ? WHERE id = ?`;
   try {
     const [result] = await database.query(query, [name.trim(), id]);
-    if (result.affectedRows === 0) return res.status(404).json({ status: "error", message: "Genre not found" });
-    res.status(200).json({ status: "success", message: "Genre updated successfully" });
+    if (result.affectedRows === 0)
+      return res
+        .status(404)
+        .json({ status: "error", message: "Genre not found" });
+    res
+      .status(200)
+      .json({ status: "success", message: "Genre updated successfully" });
   } catch (error) {
-    res.status(500).json({ status: "error", message: "Database update failed" });
+    res
+      .status(500)
+      .json({ status: "error", message: "Database update failed" });
   }
 });
 
@@ -301,10 +368,17 @@ app.delete("/api/genres/:id", async (req, res) => {
   const query = `DELETE FROM genres WHERE genre_id = ?`;
   try {
     const [result] = await database.query(query, [id]);
-    if (result.affectedRows === 0) return res.status(404).json({ status: "error", message: "Genre not found" });
-    res.status(200).json({ status: "success", message: "Genre deleted successfully" });
+    if (result.affectedRows === 0)
+      return res
+        .status(404)
+        .json({ status: "error", message: "Genre not found" });
+    res
+      .status(200)
+      .json({ status: "success", message: "Genre deleted successfully" });
   } catch (error) {
-    res.status(500).json({ status: "error", message: "Could not delete genre" });
+    res
+      .status(500)
+      .json({ status: "error", message: "Could not delete genre" });
   }
 });
 
@@ -313,13 +387,37 @@ app.delete("/api/genres/:id", async (req, res) => {
 // ==========================================
 app.post("/api/stories", async (req, res) => {
   const { title, genres } = req.body;
-  if (!title || !Array.isArray(genres)) return res.status(400).json({ status: "error", message: "Title and a valid Genre array are required" });
+  if (!title)
+    return res.status(400).json({
+      status: "error",
+      message: "Title and a valid Genre array are required",
+    });
   const query = `INSERT INTO stories (title, genres) VALUES (?, ?)`;
   try {
     const [result] = await database.query(query, [title.trim(), JSON.stringify(genres)]);
-    res.status(201).json({ status: "success", message: "Story created successfully", id: result.insertId });
+    res.status(201).json({
+      status: "success",
+      message: "Story created successfully",
+      id: result.insertId,
+    });
   } catch (error) {
-    res.status(500).json({ status: "error", message: "Internal server error during story creation" });
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error during story creation",
+    });
+  }
+});
+
+app.get("/api/stories/:id", async (req, res) => {
+  const { id } = req.params;
+  const query = `SELECT * FROM stories WHERE id = ? ORDER BY created_at DESC`;
+  try {
+    const [rows] = await database.query(query, id);
+    res.status(200).json({ status: "success", data: rows[0] });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ status: "error", message: "Failed to fetch stories" });
   }
 });
 
@@ -329,21 +427,38 @@ app.get("/api/stories", async (req, res) => {
     const [rows] = await database.query(query);
     res.status(200).json({ status: "success", data: rows });
   } catch (error) {
-    res.status(500).json({ status: "error", message: "Failed to fetch stories" });
+    res
+      .status(500)
+      .json({ status: "error", message: "Failed to fetch stories" });
   }
 });
 
 app.put("/api/stories/:id", async (req, res) => {
   const { id } = req.params;
   const { title, genres } = req.body;
-  if (!title || !Array.isArray(genres)) return res.status(400).json({ status: "error", message: "Valid Title and Genre array required" });
+  if (!title || !Array.isArray(genres))
+    return res.status(400).json({
+      status: "error",
+      message: "Valid Title and Genre array required",
+    });
   const query = `UPDATE stories SET title = ?, genres = ? WHERE id = ?`;
   try {
-    const [result] = await database.query(query, [title.trim(), JSON.stringify(genres), id]);
-    if (result.affectedRows === 0) return res.status(404).json({ status: "error", message: "Story not found" });
-    res.status(200).json({ status: "success", message: "Story updated successfully" });
+    const [result] = await database.query(query, [
+      title.trim(),
+      JSON.stringify(genres),
+      id,
+    ]);
+    if (result.affectedRows === 0)
+      return res
+        .status(404)
+        .json({ status: "error", message: "Story not found" });
+    res
+      .status(200)
+      .json({ status: "success", message: "Story updated successfully" });
   } catch (error) {
-    res.status(500).json({ status: "error", message: "Database update failed" });
+    res
+      .status(500)
+      .json({ status: "error", message: "Database update failed" });
   }
 });
 
@@ -352,10 +467,18 @@ app.delete("/api/stories/:id", async (req, res) => {
   const query = `DELETE FROM stories WHERE id = ?`;
   try {
     const [result] = await database.query(query, [id]);
-    if (result.affectedRows === 0) return res.status(404).json({ status: "error", message: "Story not found" });
-    res.status(200).json({ status: "success", message: "Story deleted successfully" });
+    if (result.affectedRows === 0)
+      return res
+        .status(404)
+        .json({ status: "error", message: "Story not found" });
+    return res
+      .status(200)
+      .json({ status: "success", message: "Story deleted successfully" });
   } catch (error) {
-    res.status(500).json({ status: "error", message: "Could not delete story" });
+    console.log(error);
+    return res
+      .status(500)
+      .json({ status: "error", message: "Could not delete story" });
   }
 });
 
@@ -363,18 +486,41 @@ app.delete("/api/stories/:id", async (req, res) => {
 // SCRIPTS ROUTES 📜
 // ==========================================
 app.post("/api/scripts", async (req, res) => {
-  const { story_id, order_id, type, speaker_name, emotion, action, vocal, is_important } = req.body;
-  if (!story_id || !vocal || !type) return res.status(400).json({ status: "error", message: "Required fields missing" });
+  const {
+    story_id,
+    order_id,
+    type,
+    speaker_name,
+    emotion,
+    action,
+    vocal,
+    is_important,
+  } = req.body;
+  if (!story_id || !vocal || !type)
+    return res
+      .status(400)
+      .json({ status: "error", message: "Required fields missing" });
 
   const query = `
         INSERT INTO scripts (story_id, order_id, type, speaker_name, emotion, action, vocal, is_important) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
   try {
-    const [result] = await database.query(query, [story_id, order_id, type, speaker_name, emotion, action, vocal, is_important || 0]);
+    const [result] = await database.query(query, [
+      story_id,
+      order_id,
+      type,
+      speaker_name,
+      emotion,
+      action,
+      vocal,
+      is_important || 0,
+    ]);
     res.status(201).json({ status: "success", id: result.insertId });
   } catch (error) {
-    res.status(500).json({ status: "error", message: "Failed to add script line" });
+    res
+      .status(500)
+      .json({ status: "error", message: "Failed to add script line" });
   }
 });
 
@@ -406,14 +552,25 @@ app.get("/api/stories/:story_id/scripts", async (req, res) => {
     res.status(200).json({ status: "success", data: rows });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ status: "error", message: "Error compiling script tags elements context output mapping" });
+    res.status(500).json({
+      status: "error",
+      message: "Error compiling script tags elements context output mapping",
+    });
   }
 });
 
 // 3. Script Line Updates (Includes toggling Importance status) 🌟
 app.put("/api/scripts/:id", async (req, res) => {
   const { id } = req.params;
-  const { order_id, speaker_name, emotion, action, vocal, is_hidden, is_important } = req.body;
+  const {
+    order_id,
+    speaker_name,
+    emotion,
+    action,
+    vocal,
+    is_hidden,
+    is_important,
+  } = req.body;
 
   const query = `
         UPDATE scripts 
@@ -421,8 +578,20 @@ app.put("/api/scripts/:id", async (req, res) => {
         WHERE id = ?
     `;
   try {
-    const [result] = await database.query(query, [order_id, speaker_name, emotion, action, vocal, is_hidden, is_important, id]);
-    if (result.affectedRows === 0) return res.status(404).json({ status: "error", message: "Script line not found" });
+    const [result] = await database.query(query, [
+      order_id,
+      speaker_name,
+      emotion,
+      action,
+      vocal,
+      is_hidden,
+      is_important,
+      id,
+    ]);
+    if (result.affectedRows === 0)
+      return res
+        .status(404)
+        .json({ status: "error", message: "Script line not found" });
     res.status(200).json({ status: "success", message: "Script updated" });
   } catch (error) {
     res.status(500).json({ status: "error", message: "Update failed" });
@@ -445,13 +614,26 @@ app.delete("/api/scripts/:id", async (req, res) => {
 // ==========================================
 app.post("/api/exports", async (req, res) => {
   const { story_id, file_name, format } = req.body;
-  if (!story_id || !file_name) return res.status(400).json({ status: "error", message: "Missing export details" });
+  if (!story_id || !file_name)
+    return res
+      .status(400)
+      .json({ status: "error", message: "Missing export details" });
   const query = `INSERT INTO exports (story_id, file_name, format) VALUES (?, ?, ?)`;
   try {
-    const [result] = await database.query(query, [story_id, file_name, format || "pdf"]);
-    res.status(201).json({ status: "success", message: "Export history recorded", export_id: result.insertId });
+    const [result] = await database.query(query, [
+      story_id,
+      file_name,
+      format || "pdf",
+    ]);
+    res.status(201).json({
+      status: "success",
+      message: "Export history recorded",
+      export_id: result.insertId,
+    });
   } catch (error) {
-    res.status(500).json({ status: "error", message: "Failed to log export history" });
+    res
+      .status(500)
+      .json({ status: "error", message: "Failed to log export history" });
   }
 });
 
@@ -462,14 +644,20 @@ app.get("/api/stories/:story_id/exports", async (req, res) => {
     const [rows] = await database.query(query, [story_id]);
     res.status(200).json({ status: "success", data: rows });
   } catch (error) {
-    res.status(500).json({ status: "error", message: "Could not fetch export history" });
+    res
+      .status(500)
+      .json({ status: "error", message: "Could not fetch export history" });
   }
 });
 
 app.put("/api/exports/:id", async (req, res) => {
   const { id } = req.params;
   const { new_file_name } = req.body;
-  if (!new_file_name || new_file_name.trim() === "") return res.status(400).json({ status: "error", message: "A valid new file name is required for renaming" });
+  if (!new_file_name || new_file_name.trim() === "")
+    return res.status(400).json({
+      status: "error",
+      message: "A valid new file name is required for renaming",
+    });
 
   let sanitizedName = new_file_name.trim();
   if (!sanitizedName.toLowerCase().endsWith(".pdf")) sanitizedName += ".pdf";
@@ -477,10 +665,19 @@ app.put("/api/exports/:id", async (req, res) => {
   const query = `UPDATE exports SET file_name = ? WHERE id = ?`;
   try {
     const [result] = await database.query(query, [sanitizedName, id]);
-    if (result.affectedRows === 0) return res.status(404).json({ status: "error", message: "Export record not found" });
-    res.status(200).json({ status: "success", message: "Export renamed successfully", updated_name: sanitizedName });
+    if (result.affectedRows === 0)
+      return res
+        .status(404)
+        .json({ status: "error", message: "Export record not found" });
+    res.status(200).json({
+      status: "success",
+      message: "Export renamed successfully",
+      updated_name: sanitizedName,
+    });
   } catch (error) {
-    res.status(500).json({ status: "error", message: "Database error during rename" });
+    res
+      .status(500)
+      .json({ status: "error", message: "Database error during rename" });
   }
 });
 
@@ -494,15 +691,28 @@ app.post("/api/stories/:story_id/versions", async (req, res) => {
   const { version_name, script_data } = req.body; // script_data is expected as full scripts array object data matrix
 
   if (!version_name || !script_data) {
-    return res.status(400).json({ status: "error", message: "Version name and script snapshot datasets are required" });
+    return res.status(400).json({
+      status: "error",
+      message: "Version name and script snapshot datasets are required",
+    });
   }
 
   const query = `INSERT INTO script_versions (story_id, version_name, script_data) VALUES (?, ?, ?)`;
   try {
-    const [result] = await database.query(query, [story_id, version_name.trim(), JSON.stringify(script_data)]);
-    res.status(201).json({ status: "success", version_id: result.insertId, message: "Script version snapshot archived safely! 🛡️" });
+    const [result] = await database.query(query, [
+      story_id,
+      version_name.trim(),
+      JSON.stringify(script_data),
+    ]);
+    res.status(201).json({
+      status: "success",
+      version_id: result.insertId,
+      message: "Script version snapshot archived safely! 🛡️",
+    });
   } catch (error) {
-    res.status(500).json({ status: "error", message: "Snapshot archiving sequence failed" });
+    res
+      .status(500)
+      .json({ status: "error", message: "Snapshot archiving sequence failed" });
   }
 });
 
@@ -514,7 +724,9 @@ app.get("/api/stories/:story_id/versions", async (req, res) => {
     const [rows] = await database.query(query, [story_id]);
     res.status(200).json({ status: "success", data: rows });
   } catch (error) {
-    res.status(500).json({ status: "error", message: "Failed to load story snapshots" });
+    res
+      .status(500)
+      .json({ status: "error", message: "Failed to load story snapshots" });
   }
 });
 

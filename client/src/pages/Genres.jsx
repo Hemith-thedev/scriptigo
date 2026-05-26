@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from "react";
-import Dropdown from "../components/common/Dropdown";
 import axios from "axios";
 import { FaPen, FaTrash, FaCheck, FaX } from "react-icons/fa6";
 
 export default function GenresPage() {
   const [genres, setGenres] = useState([]);
   const [name, setName] = useState("");
-  const [color, setColor] = useState("");
-  const [resetColor, setResetColor] = useState(false);
   const [placeholder, setPlaceholder] = useState("Name");
   const fetchGenres = async () => {
     const res = await axios.get("http://localhost:5000/api/genres");
@@ -51,13 +48,14 @@ export default function GenresPage() {
     }
   };
   const GenreCard = ({ genre }) => {
-    const [name, setName] = useState(genre.name);
+    const [name, _] = useState(genre.name);
     const [editingName, setEditingName] = useState(genre.name || "");
     const [isEditing, setIsEditing] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const formatDate = (dateString) => {
       if (!dateString) return "Just Now";
-      const date = new Date(dateString);
+      const date =
+        typeof dateString === "string" ? new Date(dateString) : dateString;
       const options = {
         day: "2-digit",
         month: "short",
@@ -111,9 +109,9 @@ export default function GenresPage() {
             />
           </div>
           <p className="text-white-dark">
-            {formatDate(genre.created_at)}
+            {formatDate(genre.created_at || "")}
             {String(genre.updated_at) !== String(genre.created_at)
-              ? ` | Updated At: ${formatDate(genre.updated_at)}`
+              ? ` | Updated At: ${formatDate(genre.updated_at || "")}`
               : ""}
           </p>
         </div>
