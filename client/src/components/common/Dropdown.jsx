@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { IoMdArrowDropdown } from "react-icons/io";
+import { useNavigate } from "react-router-dom";
 
 export default function Dropdown({
   openWhen = false,
@@ -16,6 +17,7 @@ export default function Dropdown({
   placeholder = "Select an option",
   type,
 }) {
+  const navigate = useNavigate();
   const dropdownRef = useRef(null);
   // Use isOpen directly from props to control it from parent
   const isOpen = openWhen;
@@ -121,6 +123,7 @@ export default function Dropdown({
             onClick={() => {
               setSelectedOptions([]);
               onoptionchange([]);
+              navigate("/genres")
             }}
           >
             <p>Add Genre</p>
