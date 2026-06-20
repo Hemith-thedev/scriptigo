@@ -1,9 +1,11 @@
-
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { IoIosArrowBack } from "react-icons/io";
+import { MdLightMode, MdDarkMode } from "react-icons/md";
+import { useTheme } from "../../context/ThemeContext";
 
 const Header = () => {
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
   const PageHeadingElement = ({ route }: { route: string }) => {
     let heading = "";
     if (route === "/stories") heading = "Stories";
@@ -13,7 +15,7 @@ const Header = () => {
     if (route === "/link-to") heading = "Links";
     if (route.startsWith("/link-to/story/")) {
       const id = location.pathname.charAt(15);
-      heading = `Story ${id}`
+      heading = `Story ${id}`;
     }
     return (
       <span>
@@ -24,7 +26,7 @@ const Header = () => {
   };
   return (
     <>
-      <header className="flex justify-center items-center h-fit w-full shadow-2xl shadow-gold-20 z-50">
+      <header className="flex justify-center items-center h-fit w-full shadow-2xl shadow-primary-50/50 z-50">
         <div className="flex flex-row justify-between items-center w-full max-w-7xl py-6 px-12">
           <div className="flex flex-row justify-center items-start gap-4">
             <div
@@ -38,13 +40,26 @@ const Header = () => {
               </button>
             </div>
             <p className="text-[2rem] h-fit w-fit font-medium">
-              <span className="highlight gradient">Scriptigo</span>
+              <span className="highlight gradient">Scriptigo~</span>
               {location.pathname === "/" ? (
                 <></>
               ) : (
                 <PageHeadingElement route={location.pathname} />
               )}
             </p>
+          </div>
+          <div className="flex justify-center items-center">
+            {/* <button
+              className="primary-button has-element-hover"
+              onClick={toggleTheme}
+              title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+            >
+              {theme === "light" ? (
+                <MdDarkMode className="text-3xl" />
+              ) : (
+                <MdLightMode className="text-3xl" />
+              )}
+            </button> */}
           </div>
           {/* <div className="settings">
           <button className="settings-toggle">

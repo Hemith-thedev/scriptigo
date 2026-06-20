@@ -18,16 +18,16 @@
   --color-white-theme: #f8f8ff;
   --color-white-dark: #d1d1d6;
 
-  /* --- GOLD SERIES (#efbf04) --- */
-  --color-gold-10: #2d2501;
-  --color-gold-20: #5c4a02;
-  --color-gold-30: #8c7003;
-  --color-gold-40: #bc9704;
-  --color-gold-50: #efbf04;
-  --color-gold-60: #f7cf33;
-  --color-gold-70: #fadca1;
-  --color-gold-80: #fce9bc;
-  --color-gold-90: #fef4d9;
+  /* --- BLUE SERIES  --- */
+  --color-primary-10: hsl(220, 100%, 10%);
+  --color-primary-20: hsl(220, 100%, 20%);
+  --color-primary-30: hsl(220, 100%, 30%);
+  --color-primary-40: hsl(220, 100%, 40%);
+  --color-primary-50: hsl(220, 100%, 50%);
+  --color-primary-60: hsl(220, 100%, 60%);
+  --color-primary-70: hsl(220, 100%, 70%);
+  --color-primary-80: hsl(220, 100%, 80%);
+  --color-primary-90: hsl(220, 100%, 90%);
 }
 
 /* 4. Global Structural Overrides & Custom CSS Elements */
@@ -40,7 +40,31 @@
 }
 
 #root {
-  @apply flex flex-col justify-start items-center min-h-screen min-w-full max-w-7xl bg-black-theme text-white-dark;
+  @apply flex flex-col justify-start items-center min-h-screen min-w-full max-w-7xl;
+  &.light {
+    @apply bg-white-dark text-black-light;
+    --color-primary-10: hsl(220, 100%, 10%);
+    --color-primary-20: hsl(220, 100%, 20%);
+    --color-primary-30: hsl(220, 100%, 30%);
+    --color-primary-40: hsl(220, 100%, 40%);
+    --color-primary-50: hsl(220, 100%, 50%);
+    --color-primary-60: hsl(220, 100%, 60%);
+    --color-primary-70: hsl(220, 100%, 70%);
+    --color-primary-80: hsl(220, 100%, 80%);
+    --color-primary-90: hsl(220, 100%, 90%);
+  }
+  &.dark {
+    @apply bg-black-dark text-white-light;
+    --color-primary-10: hsl(220, 100%, 90%);
+    --color-primary-20: hsl(220, 100%, 80%);
+    --color-primary-30: hsl(220, 100%, 70%);
+    --color-primary-40: hsl(220, 100%, 60%);
+    --color-primary-50: hsl(220, 100%, 50%);
+    --color-primary-60: hsl(220, 100%, 40%);
+    --color-primary-70: hsl(220, 100%, 30%);
+    --color-primary-80: hsl(220, 100%, 20%);
+    --color-primary-90: hsl(220, 100%, 10%);
+  }
 }
 
 h1 {
@@ -78,10 +102,16 @@ h6 {
   @apply fixed top-0 left-0 flex flex-col justify-center items-center min-h-screen w-full backdrop-blur-3xl text-white-theme;
 
   & > div {
-    @apply gap-4 bg-black-light p-20 rounded-[3rem] blur-none;
+    @apply gap-4 p-20 rounded-[3rem] blur-none;
+    #root.light & {
+      @apply bg-white-dark text-black-light;
+    }
+    #root.dark & {
+      @apply bg-black-light text-white-light;
+    }
 
     & h1 {
-      @apply text-7xl text-gold-40;
+      @apply text-7xl text-primary-40;
     }
 
     & button {
@@ -112,11 +142,9 @@ h6 {
 }
 
 .primary-button {
-  @apply py-2 px-4 rounded-xl border-2 border-transparent outline-none cursor-pointer bg-white-theme text-gold-40;
-
+  @apply py-2 px-4 rounded-xl border-2 border-none outline-none cursor-pointer bg-primary-90 text-primary-60 hover:bg-primary-50 hover:text-white hover:shadow-lg hover:shadow-primary-50/50 focus-visible:border-primary-50 focus-visible:shadow-lg focus-visible:shadow-primary-50/50;
   &:hover,
   &:focus-visible {
-    @apply bg-gold-90 text-gold-40 hover:bg-gold-40 hover:text-gold-90 focus-visible:border-gold-50;
 
     &.has-element-hover {
       @apply scale-125;
@@ -124,17 +152,26 @@ h6 {
   }
 
   &.red {
-    @apply bg-red-100 text-red-600 hover:bg-red-600 hover:text-red-100 focus-visible:border-red-500;
+    @apply bg-red-100 text-red-600 hover:bg-red-600 hover:text-red-100 hover:shadow-lg hover:shadow-red-500/50 focus-visible:border-red-500 focus-visible:shadow-lg focus-visible:shadow-red-500/50;
   }
   &.blue {
-    @apply bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-blue-100 focus-visible:border-blue-500;
+    @apply bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-blue-100 hover:shadow-lg hover:shadow-blue-500/50 focus-visible:border-blue-500 focus-visible:shadow-lg focus-visible:shadow-red-500/50;
   }
   &.green {
-    @apply bg-green-100 text-green-600 hover:bg-green-600 hover:text-green-100 focus-visible:border-green-500;
+    @apply bg-green-100 text-green-600 hover:bg-green-600 hover:text-green-100 hover:shadow-lg hover:shadow-green-500/50 focus-visible:border-green-500 focus-visible:shadow-lg focus-visible:shadow-red-500/50;
+  }
+  &.yellow {
+    @apply bg-yellow-100 text-yellow-600 hover:bg-yellow-600 hover:text-yellow-100 hover:shadow-lg hover:shadow-yellow-500/50 focus-visible:border-yellow-500 focus-visible:shadow-lg focus-visible:shadow-red-500/50;
   }
 }
 
 header {
+  #root.light & {
+    @apply bg-white-dark;
+  }
+  #root.dark & {
+    @apply bg-black-light shadow-xl shadow-primary-50/50 hover:shadow-2xl;
+  }
   & > div {
     & .logo p {
       -webkit-text-fill-color: transparent;
@@ -143,10 +180,10 @@ header {
 }
 
 .highlight {
-  @apply text-gold-50;
+  @apply text-primary-50;
 
   &.gradient {
-    @apply h-fit w-fit bg-gradient-to-r from-gold-50 to-gold-30 bg-clip-text text-transparent;
+    @apply h-fit w-fit bg-linear-to-r from-primary-50 to-primary-30 bg-clip-text text-transparent;
     -webkit-text-fill-color: transparent;
   }
 }
@@ -163,11 +200,9 @@ header {
   }
 }
 
-.kpi-cards {
-  @apply grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-8 h-fit w-full;
-
+/* .kpi-cards {
   & > .kpi-card {
-    @apply flex flex-col min-h-40 bg-gold-10 rounded-4xl text-white-theme no-underline shadow-gold-30 hover:bg-gold-20 hover:scale-105 hover:shadow-2xl;
+    @apply flex flex-col min-h-40 bg-primary-10 rounded-4xl text-white-theme no-underline shadow-primary-30 hover:bg-primary-20 hover:scale-105 hover:shadow-2xl;
 
     &:hover {
       & > div {
@@ -175,7 +210,7 @@ header {
           @apply text-5xl;
         }
         & p {
-          @apply text-gold-70;
+          @apply text-primary-70;
         }
       }
     }
@@ -184,67 +219,58 @@ header {
       @apply flex flex-col justify-center items-center h-full w-full;
     }
   }
-}
-
-.scriptigo-form {
-  @apply flex flex-col justify-start items-start gap-4 h-fit w-full bg-black-light p-8 rounded-4xl;
-
-  &.no-padding {
-    @apply p-0;
-  }
-
-  & .input-group {
-    @apply flex flex-col justify-start items-start gap-4 h-fit w-full;
-
-    & > p:nth-child(1) {
-      @apply text-2xl p-3 rounded-xl bg-gold-10;
-    }
-
-    & .input-fields {
-      @apply grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-8 h-fit w-full;
-
-      & .input-field {
-        @apply relative flex min-h-8 w-full;
-
-      }
-    }
-  }
-  & input[type="text"] {
-    @apply min-h-12 p-2 w-full border-b-2 border-b-gold-20 outline-none text-gold-50 tracking-widest;
-  }
-}
+} */
 
 input[type="range"] {
   appearance: none;
   @apply flex min-h-8 w-full px-2 rounded-2xl border-none outline-none;
+  #root.light & {
+    @apply bg-primary-80;
+  }
+  #root.dark & {
+    @apply bg-primary-20;
+  }
   &::-webkit-slider-thumb {
     @apply h-4 w-4 rounded-3xl appearance-none;
   }
   &.hue {
-    background-image: linear-gradient(to right,
-    red,
-    red,
-    orange,
-    yellow,
-    green,
-    blue,
-    purple,
-    crimson,
-    red,
-    red
+    background-image: linear-gradient(
+      to right,
+      red,
+      red,
+      orange,
+      yellow,
+      green,
+      cyan,
+      blue,
+      purple,
+      red,
+      red
     );
     &::-webkit-slider-thumb {
-      @apply bg-white-light;
+      @apply bg-white-light border-2 border-black-light;
     }
   }
   &.saturation {
     &::-webkit-slider-thumb {
-      @apply bg-white-light mix-blend-difference;
+      @apply bg-white-light mix-blend-difference border-2;
+      #root.light & {
+        @apply border-black-light;
+      }
+      #root.dark & {
+        @apply border-white-light;
+      }
     }
   }
   &.lightness {
     &::-webkit-slider-thumb {
-      @apply bg-black-light;
+      @apply border-2;
+      #root.light & {
+        @apply bg-black-light border-primary-40;
+      }
+      #root.dark & {
+        @apply bg-white-light border-primary-40;
+      }
     }
   }
 }
@@ -259,4 +285,30 @@ input[type="range"] {
   &::-webkit-scrollbar {
     display: none;
   }
+}
+
+.story-page-form-heading {
+  @media (max-width: 1075px) {
+    margin: auto;
+  }
+}
+
+.form-fields {
+  & button {
+    @media (max-width: 1075px) {
+      /* Ikkada grid-column use cheyali, complete row ni occupy cheyadanki 1 / -1 perfect! */
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+::-webkit-scrollbar {
+  @apply bg-white-dark;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-linear-to-b from-primary-50 to-primary-20 border-4 border-white-dark rounded-xl;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply  to-primary-10;
 }

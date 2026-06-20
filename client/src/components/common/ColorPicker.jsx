@@ -69,22 +69,27 @@ export default function ColorPicker({
   return (
     <div className="relative flex flex-col justify-start items-center h-full w-full">
       <button
-        className="flex justify-between items-center gap-2 h-full w-full border-b-2 border-b-gold-20 p-1.5 outline-none cursor-pointer"
+        className={`flex justify-between items-center gap-2 h-full w-full border-b-2 ${isOpen ? "border-b-primary-50" : "border-b-primary-20"} p-1.5 outline-none cursor-pointer`}
         type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
       >
-        <p className="text-gold-30 text-nowrap">Color -</p>
+        <p
+          className={`text-nowrap ${isOpen ? "text-primary-50" : "text-primary-20"}`}
+          onClick={() => setIsOpen((prev) => !prev)}
+        >
+          Color -
+        </p>
         <div
           style={{
             backgroundColor: `hsl(${hue}, ${saturation}%, ${lightness}%)`,
           }}
+          onClick={() => setIsOpen((prev) => !prev)}
           className="flex justify-center items-center h-full w-full rounded-xl"
         ></div>
       </button>
       <div
-        className={`absolute ${isOpen ? "top-16 pointer-events-auto blur-none opacity-100" : "top-20 pointer-events-none blur-xl opacity-0"} z-50 flex flex-col justify-start items-start gap-2 max-h-84 w-full p-1.5 rounded-2xl bg-black-light/40 backdrop-blur-lg border border-white/10 overflow-y-auto no-scrollbar`}
+        className={`absolute ${isOpen ? "top-16 pointer-events-auto blur-none opacity-100" : "top-20 pointer-events-none blur-xl opacity-0"} z-50 flex flex-col justify-start items-start gap-2 max-h-84 w-full p-1.5 rounded-2xl bg-white/10 backdrop-blur-lg border border-primary-80 overflow-y-auto no-scrollbar`}
       >
-        <div className="sticky top-0 flex justify-between items-center p-2 pl-4 bg-black-theme rounded-xl h-fit w-full">
+        <div className="sticky top-0 flex justify-between items-center p-2 pl-4 bg-black-theme text-white-theme rounded-xl h-fit w-full">
           <p>{historyOpen ? "History" : label}</p>
           <div className="flex">
             <button

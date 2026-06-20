@@ -8,21 +8,25 @@ const UsernameWindow = ({ condition, oncancel, onsubmit }) => {
     return storedName ? storedName : "Writer";
   });
   return (
-    <div className={`username-window ${condition ? "" : "hidden"}`}>
-      <div className="flex flex-col justify-start items-center gap-12">
-        <form action="" className="scriptigo-form no-padding">
+    <div
+      className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col justify-center items-center h-full w-full ${condition ? "backdrop-blur-xl bg-white-dark/20 pointer-events-auto" : "backdrop-blur-none pointer-events-none"}`}
+    >
+      <div
+        className={`flex flex-col justify-start items-center gap-4 h-fit w-fit bg-white-dark shadow-xl hover:shadow-2xl hover:shadow-primary-50/50 p-12 rounded-3xl ${condition ? "translate-y-0 blur-none opacity-100" : "translate-y-1/2 blur-2xl opacity-0"}`}
+      >
+        <form action="" className="p-3">
           <div className="input-field">
-          <input
-          className="text-center"
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-        </div>
+            <input
+              className="h-fit w-full p-4 tracking-widest text-primary-50 border-b-2 border-b-primary-20 hover:border-b-primary-50 focus:border-b-primary-50 outline-none text-center"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </div>
         </form>
-        <div className="buttons">
+        <div className="flex justify-center items-center gap-4">
           <button
-            className="primary-button red has-element-hover"
+            className="primary-button red"
             onClick={() => {
               oncancel();
             }}
@@ -30,7 +34,7 @@ const UsernameWindow = ({ condition, oncancel, onsubmit }) => {
             Cancel
           </button>
           <button
-            className="primary-button has-element-hover"
+            className="primary-button"
             onClick={() => {
               localStorage.setItem("scriptigo-username", username);
               onsubmit(username);
@@ -116,19 +120,27 @@ export default function Dashboard() {
         </section>
         <section className="scriptigo-section">
           <div className="scriptigo-section-wrapper">
-            <div className="kpi-cards">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-8 h-fit w-full">
               {[
                 {
-                  label: (stories.length < 2) ? "Story" : "Stories",
+                  label: stories.length < 2 && stories === 0 ? "Story" : "Stories",
                   count: stories.length,
                   path: "/stories",
                 },
-                { label: (genres.length < 2) ? "Genre" : "Genres", count: genres.length, path: "/genres" },
-                { label: (tags.length < 2) ? "Tag" : "Tags", count: tags.length, path: "/tags" },
-                { label: "Links", path: "/link-to" },
+                {
+                  label: genres.length < 2 && genres === 0 ? "Genre" : "Genres",
+                  count: genres.length,
+                  path: "/genres",
+                },
+                {
+                  label: tags.length < 2 && tags === 0 ? "Tag" : "Tags",
+                  count: tags.length,
+                  path: "/tags",
+                },
+                // { label: "Links", path: "/link-to" },
               ].map((card, index) => (
                 <NavLink key={index} className="kpi-card" to={card.path}>
-                  <div>
+                  <div className="flex bg-white-dark shadow-md p-8 rounded-3xl hover:shadow-2xl hover:shadow-primary-50/90 hover:text-primary-50 hover:text-shadow-lg hover:text-shadow-primary-50/10">
                     <h1>{card.count}</h1>
                     <p>{card.label}</p>
                   </div>
@@ -142,13 +154,13 @@ export default function Dashboard() {
             <h3 className="">
               <span className="highlight">Pick</span> up where you left off?
             </h3>
-            <div className="flex justify-start items-start h-fit w-full bg-black-light p-4 rounded-4xl">
+            <div className="flex justify-start items-start h-fit w-full bg-white-dark p-4 rounded-3xl shadow-xl hover:shadow-2xl hover:shadow-primary-50/90">
               <div className="flex flex-col justify-start items-start gap-2 h-fit w-full">
                 <div className="flex justify-between items-start h-fit w-full">
-                  <h5 className="pl-4">Story: The Purple Love💜</h5>
+                  <h5 className="p-4 bg-white-dark shadow-md rounded-xl hover:shadow-2xl hover:shadow-primary-50/50">Story: The Purple Love💜</h5>
                   <button className="primary-button green">Let's Go!</button>
                 </div>
-                <div className="flex flex-col justify-start items-start p-4 bg-black-theme rounded-2xl">
+                <div className="flex flex-col justify-start items-start rounded-2xl">
                   <p className="highlight gradient">Last Script</p>
                   <p>
                     Hemith: Anu, okaroju amma (Maya) nannu chusinappudu... nuvvu

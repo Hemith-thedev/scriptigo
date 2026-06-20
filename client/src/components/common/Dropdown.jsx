@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { IoMdArrowDropdown } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
+import { FaX } from "react-icons/fa6";
 
 export default function Dropdown({
   openWhen = false,
@@ -77,38 +78,44 @@ export default function Dropdown({
       ref={dropdownRef}
     >
       <button
-        className="flex justify-between items-center h-full w-full border-b-2 border-b-gold-20 px-2 outline-none"
-        onClick={() => ontoggle()}
+        className={`flex justify-between items-center h-full w-full border-b-2 py-3 px-4 ${isOpen ? "border-b-primary-50" : "border-b-primary-20"} px-2 outline-none`}
       >
-        <p className="truncate text-gold-30">{displayPlaceholder}</p>
-        <IoMdArrowDropdown
-          className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
-        />
-      </button>
-      <ul
-        className={`absolute ${isOpen ? "top-16 pointer-events-auto blur-none opacity-100" : "top-20 pointer-events-none blur-xl opacity-0"} z-50 flex flex-col justify-start items-start max-h-64 w-full p-1.5 rounded-2xl bg-black-light/40 backdrop-blur-lg border border-white/10 overflow-y-auto no-scrollbar`}
-      >
-        {/* Dropdown list lo starting lo "Unselect" option */}
-        {showClear && selectedOptions.length > 0 && (
+        <p
+          className={`truncate ${isOpen ? "text-primary-50" : "text-primary-20"}`}
+          onClick={() => ontoggle()}
+        >
+          {displayPlaceholder}
+        </p>
+        <div className="flex justify-end items-center gap-4">
+          {showClear && selectedOptions.length > 0 && (
           <button
-            className="flex justify-start items-center h-fit w-full p-2 rounded-xl text-red-400 hover:bg-black-light"
+            className="flex justify-start items-center h-fit p-2 rounded-xl text-red-400 hover:bg-red-200 cursor-pointer"
             onClick={() => {
               setSelectedOptions([]);
               onoptionchange([]);
             }}
           >
-            <p>{hasmultipleoptions ? "Clear All" : "Unselect"}</p>
+            <FaX />
           </button>
-        )}
+          )}
+          <IoMdArrowDropdown
+            className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
+          />
+        </div>
+      </button>
+      <ul
+        className={`absolute ${isOpen ? "top-16 pointer-events-auto blur-none opacity-100" : "top-20 pointer-events-none blur-xl opacity-0"} z-50 flex flex-col justify-start items-start max-h-64 w-full p-1.5 rounded-2xl bg-white-dark/40 backdrop-blur-lg border border-primary-80 overflow-y-auto no-scrollbar`}
+      >
+        {/* Dropdown list lo starting lo "Unselect" option */}
         {options.map((option, index) => (
           <li
             key={index}
             className="flex flex-col justify-start items-start h-fit w-full"
           >
             <button
-              className={`flex justify-start items-center h-fit w-full p-2 rounded-xl hover:bg-black-light cursor-pointer ${
+              className={`flex justify-start items-center h-fit w-full p-2 ${index === options.length - 1 ? "rounded-b-xl" : ""} ${index === 0 ? "rounded-t-xl" : ""} cursor-pointer ${
                 selectedOptions.find((o) => o.value === option.value)
-                  ? "bg-black-light font-bold"
+                  ? "bg-white-light font-bold"
                   : ""
               }`}
               onClick={() => handleOptionSelect(option)}
@@ -119,11 +126,11 @@ export default function Dropdown({
         ))}
         {type === "genres" && (
           <button
-            className="flex justify-start items-center h-fit w-full p-2 rounded-xl bg-gold-30 hover:bg-gold-20 cursor-pointer"
+            className="flex justify-start items-center h-fit w-full p-2 rounded-xl bg-gold-30 cursor-pointer hover:bg-white"
             onClick={() => {
               setSelectedOptions([]);
               onoptionchange([]);
-              navigate("/genres")
+              navigate("/genres");
             }}
           >
             <p>Add Genre</p>

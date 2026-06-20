@@ -64,7 +64,7 @@ export default function LinksPage() {
             className="primary-button yellow"
             onClick={(e) => {
               e.preventDefault();
-              navigate(`/link-to/story/${details.id}`);
+              navigate(`/link-to/story/${details._id}`);
             }}
           >
             <FaLink />
@@ -79,7 +79,7 @@ export default function LinksPage() {
         <section className="scriptigo-section">
           <div className="scriptigo-section-wrapper flex-col gap-4">
             {stories.map((story, index) => (
-              <StoryCard key={story.id} details={story} />
+              <StoryCard key={story._id} details={story} />
             ))}
           </div>
         </section>

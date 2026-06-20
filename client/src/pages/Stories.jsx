@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Dropdown from "../components/common/Dropdown";
 import axios from "axios";
 import { FaPen, FaTrash, FaCheck, FaX } from "react-icons/fa6";
+import { GrAttachment } from "react-icons/gr";
 
 export default function StoriesPage() {
   const [genres, setGenres] = useState([]);
@@ -12,6 +14,8 @@ export default function StoriesPage() {
     title: "",
     genres: [],
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const storiesPerPage = 15;
   const fetchGenres = async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/genres");
@@ -29,6 +33,7 @@ export default function StoriesPage() {
     try {
       const res = await axios.get("http://localhost:5000/api/stories");
       setStories(Array.isArray(res.data.data) ? res.data.data : []);
+      setCurrentPage(1);
     } catch (error) {
       console.error("Error fetching stories:", error);
     }
@@ -37,9 +42,13 @@ export default function StoriesPage() {
     fetchGenres();
     fetchStories();
   }, []);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentPage]);
   const Divider = () => (
-    <div className="h-0.5 w-full bg-white-dark opacity-20 rounded-md my-8" />
+    <div className="h-0.5 w-full bg-primary-80 rounded-md my-4" />
   );
+  const navigate = useNavigate();
   const StoryCard = ({ story }) => {
     const [name, setName] = useState(story.title);
     const [editingName, setEditingName] = useState(story.title || "");
@@ -67,6 +76,7 @@ export default function StoriesPage() {
           `http://localhost:5000/api/stories/${id}`,
         );
         setPlaceholder(res.data.message);
+        setCurrentPage(1);
         fetchGenres();
         fetchStories();
         setPlaceholder("Genre deleted successfully! 👍🏻");
@@ -83,6 +93,7 @@ export default function StoriesPage() {
         });
         setPlaceholder(res.data.message);
         setIsEditing(false);
+        setCurrentPage(1);
         fetchGenres();
         fetchStories();
         setPlaceholder("Genre updated successfully! 😎");
@@ -92,27 +103,37 @@ export default function StoriesPage() {
       }
     };
     return (
-      <div className="flex justify-start items-start h-fit w-full bg-red-500/0">
+      <div className="flex justify-start items-start h-fit w-full p-4 hover:bg-primary-90 rounded-2xl cursor-pointer">
         <div className="flex flex-col justify-start items-start h-fit w-full">
           <div className="scriptigo-form no-padding">
             <input
               type="text"
-              className={`text-[1.75rem] ${isEditing ? "" : "border-b-transparent! px-0!"}`}
+              className={`text-[1.75rem] ${isEditing ? "" : "border-b-transparent! px-0!"} h-fit w-full p-4 tracking-widest text-primary-50 border-b-2 border-b-primary-20 hover:border-b-primary-50 focus:border-b-primary-50 outline-none`}
               placeholder={placeholder}
               value={isEditing ? editingName : name}
               onChange={(e) => setEditingName(e.target.value)}
               disabled={!isEditing}
               autoFocus
+              title={name}
             />
           </div>
-          <p className="text-white-dark">
-            {formatDate(story.created_at)}
-            {String(story.updated_at) !== String(story.created_at)
-              ? ` | Updated At: ${formatDate(story.updated_at)}`
+          <p className="text-gray-500">
+            {formatDate(story.createdAt)}
+            {String(story.updatedAt) !== String(story.createdAt)
+              ? ` | Updated At: ${formatDate(story.updatedAt)}`
               : ""}
           </p>
         </div>
         <div className="flex justify-end items-start gap-2">
+          <button
+            className="primary-button green"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate(`/stories/${story._id}/attachments`);
+            }}
+          >
+            <GrAttachment />
+          </button>
           {isEditing ? (
             <button
               className="primary-button red"
@@ -128,7 +149,7 @@ export default function StoriesPage() {
               className="primary-button green"
               onClick={(e) => {
                 e.preventDefault();
-                handleDelete(story.id);
+                handleDelete(story._id);
               }}
             >
               <FaCheck />
@@ -149,7 +170,7 @@ export default function StoriesPage() {
               className="primary-button green"
               onClick={(e) => {
                 e.preventDefault();
-                handleEdit(story.id, editingName, story.genres);
+                handleEdit(story._id, editingName, story.genres);
               }}
             >
               <FaCheck />
@@ -199,6 +220,7 @@ export default function StoriesPage() {
         title: "",
         genres: [],
       });
+      setCurrentPage(1);
       setPlaceholder(res.data.message);
       setTimeout(() => {
         setPlaceholder("Title");
@@ -214,49 +236,48 @@ export default function StoriesPage() {
     <>
       <main className="scriptigo-page">
         <div />
-        <section className="sticky top-4 scriptigo-section top-gap z-40">
-          <div className="fixed top-0 left-0 h-56 w-full bg-transparent backdrop-blur-2xl z-10 rounded-b-4xl" />
-          <div className="scriptigo-section-wrapper">
-            <form className="scriptigo-form z-20" onSubmit={handleSubmit}>
-              <div className="input-group">
-                <p>Add Story</p>
-                <div className="input-fields">
-                  <div className="input-field gap-8 col-span-3">
-                    <input
-                      type="text"
-                      placeholder="Title"
-                      value={data.title}
-                      onChange={(e) =>
-                        setData((prev) => ({ ...prev, title: e.target.value }))
-                      }
-                    />
-                    <Dropdown
-                      openWhen={genresDropdownOpen}
-                      options={genres}
-                      placeholder={"Genres"}
-                      hasmultipleoptions={true}
-                      onoptionchange={(selectedObjects) => {
-                        // Ikkada object list ni just values (array of strings) ki marchi update cheyyi
-                        const selectedValues = selectedObjects.map(
-                          (obj) => obj.value,
-                        );
-                        setData((prev) => ({
-                          ...prev,
-                          genres: selectedValues,
-                        }));
-                      }}
-                      ontoggle={() =>
-                        setGenresDropdownOpen(!genresDropdownOpen)
-                      }
-                      type={"genres"}
-                    />
-                    <button
-                      className="primary-button text-nowrap"
-                      type="submit"
-                    >
-                      Add Story
-                    </button>
-                  </div>
+        <section className="scriptigo-section top-gap z-40">
+          {/* <div className="fixed top-0 left-0 h-56 w-full bg-white-dark/70 backdrop-blur-2xl z-10 rounded-b-4xl" /> */}
+          <div className="scriptigo-section-wrapper bg-white-dark py-8">
+            <form className="flex h-fit w-full z-20" onSubmit={handleSubmit}>
+              <div className="flex flex-col gap-4 h-fit w-full">
+                <p
+                  className="p-4 text-primary-50 bg-primary-90 h-fit w-fit rounded-xl"
+                  id="story-page-form-heading"
+                >
+                  Add Story
+                </p>
+                <div className="form-fields grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] h-fit w-full gap-8">
+                  <input
+                    type="text"
+                    className="h-fit w-full p-4 tracking-widest text-primary-50 border-b-2 border-b-primary-20 hover:border-b-primary-50 focus:border-b-primary-50 outline-none"
+                    placeholder="Title"
+                    value={data.title}
+                    onChange={(e) =>
+                      setData((prev) => ({ ...prev, title: e.target.value }))
+                    }
+                  />
+                  <Dropdown
+                    openWhen={genresDropdownOpen}
+                    options={genres}
+                    placeholder={"Genres"}
+                    hasmultipleoptions={true}
+                    onoptionchange={(selectedObjects) => {
+                      // Ikkada object list ni just values (array of strings) ki marchi update cheyyi
+                      const selectedValues = selectedObjects.map(
+                        (obj) => obj.value,
+                      );
+                      setData((prev) => ({
+                        ...prev,
+                        genres: selectedValues,
+                      }));
+                    }}
+                    ontoggle={() => setGenresDropdownOpen(!genresDropdownOpen)}
+                    type={"genres"}
+                  />
+                  <button className="primary-button text-nowrap" type="submit">
+                    Add Story
+                  </button>
                 </div>
               </div>
             </form>
@@ -265,18 +286,49 @@ export default function StoriesPage() {
         <section className="scriptigo-section top-gap">
           <div className="scriptigo-section-wrapper flex-col gap-2">
             <h2>Your imaginations!</h2>
-            <div className="flex flex-col justify-start items-start h-fit w-full p-8 bg-black-light rounded-4xl">
+            <div className="flex flex-col justify-start items-start h-fit w-full p-4 bg-white-theme rounded-4xl">
               {stories.length === 0 ? (
                 <p>No Stories found!😭... add one using the form✨</p>
               ) : (
-                <>
-                  {stories.map((story, index) => (
-                    <React.Fragment key={index}>
-                      <StoryCard story={story} />
-                      {index !== stories.length - 1 && <Divider />}
-                    </React.Fragment>
-                  ))}
-                </>
+                (() => {
+                  const totalPages = Math.ceil(stories.length / storiesPerPage);
+                  const startIndex = (currentPage - 1) * storiesPerPage;
+                  const endIndex = startIndex + storiesPerPage;
+                  const paginatedStories = stories.slice(startIndex, endIndex);
+                  return (
+                    <>
+                      <div className="flex flex-col justify-start items-start h-fit w-full">
+                        {paginatedStories.map((story, index) => (
+                          <React.Fragment key={index}>
+                            <StoryCard story={story} />
+                            {index !== paginatedStories.length - 1 && (
+                              <Divider />
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </div>
+                      <div className="flex justify-center items-center gap-4 h-fit w-full mt-8 pt-4 border-t border-t-primary-80">
+                        <button
+                          className="primary-button"
+                          disabled={currentPage === 1}
+                          onClick={() => setCurrentPage(currentPage - 1)}
+                        >
+                          Previous
+                        </button>
+                        <span className="text-primary-50 font-medium">
+                          Page {currentPage} of {totalPages}
+                        </span>
+                        <button
+                          className="primary-button"
+                          disabled={currentPage === totalPages}
+                          onClick={() => setCurrentPage(currentPage + 1)}
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </>
+                  );
+                })()
               )}
             </div>
           </div>
