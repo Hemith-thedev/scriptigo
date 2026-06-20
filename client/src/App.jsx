@@ -9,6 +9,8 @@ import TagsPage from "./pages/Tags.jsx";
 import LinksPage from "./pages/Links.jsx";
 import StoryLink from "./pages/StoryLink.jsx";
 import StoryAttachmentPage from "./pages/StoryAttachment.jsx";
+import StoryScriptsPage from "./pages/StoryScripts.jsx";
+import StoryCharactersPage from "./pages/StoryCharacters.jsx";
 
 function App() {
   const location = useLocation();
@@ -26,6 +28,14 @@ function App() {
         <Route
           path="/stories/:id/attachments"
           element={<StoryAttachmentPage />}
+        />
+        <Route
+          path="/stories/:id/"
+          element={<StoryScriptsPage />}
+        />
+        <Route
+          path="/stories/:id/characters"
+          element={<StoryCharactersPage />}
         />
       </Routes>
     </>

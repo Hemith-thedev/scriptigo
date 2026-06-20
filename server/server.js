@@ -46,6 +46,15 @@ const StorySchema = new mongoose.Schema(
     title: { type: String, required: true, trim: true },
     genres: [{ type: String, required: true }],
     tags: [{ type: String }],
+    characters: [
+      {
+        _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
+        name: { type: String, required: true, trim: true },
+        age: { type: Number, min: 0 },
+        role: { type: String, required: true, trim: true },
+        isStarring: { type: Boolean, default: false },
+      },
+    ],
   },
   { timestamps: true },
 );
@@ -164,12 +173,10 @@ app.post("/api/scripts/:id/tags", async (req, res) => {
       .status(200)
       .json({ status: "success", message: "Script line linked tags updated" });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        status: "error",
-        message: "Link compilation parameters alignment failed",
-      });
+    res.status(500).json({
+      status: "error",
+      message: "Link compilation parameters alignment failed",
+    });
   }
 });
 
@@ -231,13 +238,11 @@ app.post("/api/genres", async (req, res) => {
   try {
     const newGenre = new Genre({ name: name.trim() });
     await newGenre.save();
-    res
-      .status(201)
-      .json({
-        status: "success",
-        message: "Genre created successfully",
-        id: newGenre._id,
-      });
+    res.status(201).json({
+      status: "success",
+      message: "Genre created successfully",
+      id: newGenre._id,
+    });
   } catch (error) {
     if (error.code === 11000)
       return res
@@ -311,30 +316,24 @@ app.delete("/api/genres/:id", async (req, res) => {
 app.post("/api/stories", async (req, res) => {
   const { title, genres } = req.body;
   if (!title)
-    return res
-      .status(400)
-      .json({
-        status: "error",
-        message: "Title and valid Genre array are required",
-      });
+    return res.status(400).json({
+      status: "error",
+      message: "Title and valid Genre array are required",
+    });
 
   try {
     const newStory = new Story({ title: title.trim(), genres });
     await newStory.save();
-    res
-      .status(201)
-      .json({
-        status: "success",
-        message: "Story created successfully",
-        id: newStory._id,
-      });
+    res.status(201).json({
+      status: "success",
+      message: "Story created successfully",
+      id: newStory._id,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        status: "error",
-        message: "Internal server error during story creation",
-      });
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error during story creation",
+    });
   }
 });
 
@@ -367,12 +366,10 @@ app.put("/api/stories/:id", async (req, res) => {
   const { id } = req.params;
   const { title, genres } = req.body;
   if (!title || !Array.isArray(genres))
-    return res
-      .status(400)
-      .json({
-        status: "error",
-        message: "Valid Title and Genre array required",
-      });
+    return res.status(400).json({
+      status: "error",
+      message: "Valid Title and Genre array required",
+    });
 
   try {
     const result = await Story.findByIdAndUpdate(
@@ -384,13 +381,11 @@ app.put("/api/stories/:id", async (req, res) => {
       return res
         .status(404)
         .json({ status: "error", message: "Story not found" });
-    res
-      .status(200)
-      .json({
-        status: "success",
-        message: "Story updated successfully",
-        data: result,
-      });
+    res.status(200).json({
+      status: "success",
+      message: "Story updated successfully",
+      data: result,
+    });
   } catch (error) {
     res
       .status(500)
@@ -411,12 +406,10 @@ app.delete("/api/stories/:id", async (req, res) => {
     await ScriptVersion.deleteMany({ story_id: id });
     await Export.deleteMany({ story_id: id });
 
-    return res
-      .status(200)
-      .json({
-        status: "success",
-        message: "Story and related assets deleted successfully",
-      });
+    return res.status(200).json({
+      status: "success",
+      message: "Story and related assets deleted successfully",
+    });
   } catch (error) {
     return res
       .status(500)
@@ -445,12 +438,10 @@ app.post("/api/stories/:id/tags", async (req, res) => {
 
     // Check if tag already exists in story
     if (story.tags.includes(tag)) {
-      return res
-        .status(409)
-        .json({
-          status: "error",
-          message: "Tag already assigned to this story",
-        });
+      return res.status(409).json({
+        status: "error",
+        message: "Tag already assigned to this story",
+      });
     }
 
     story.tags.push(tag);
@@ -477,12 +468,10 @@ app.delete("/api/stories/:id/tags/:tagName", async (req, res) => {
 
     story.tags = story.tags.filter((t) => t !== tagName);
     await story.save();
-    res
-      .status(200)
-      .json({
-        status: "success",
-        message: "Tag removed from story successfully",
-      });
+    res.status(200).json({
+      status: "success",
+      message: "Tag removed from story successfully",
+    });
   } catch (error) {
     res
       .status(500)
@@ -511,22 +500,18 @@ app.post("/api/stories/:id/genres", async (req, res) => {
 
     // Check if genre already exists in story
     if (story.genres.includes(genre)) {
-      return res
-        .status(409)
-        .json({
-          status: "error",
-          message: "Genre already assigned to this story",
-        });
+      return res.status(409).json({
+        status: "error",
+        message: "Genre already assigned to this story",
+      });
     }
 
     story.genres.push(genre);
     await story.save();
-    res
-      .status(200)
-      .json({
-        status: "success",
-        message: "Genre added to story successfully",
-      });
+    res.status(200).json({
+      status: "success",
+      message: "Genre added to story successfully",
+    });
   } catch (error) {
     res
       .status(500)
@@ -546,16 +531,74 @@ app.delete("/api/stories/:id/genres/:genreName", async (req, res) => {
 
     story.genres = story.genres.filter((g) => g !== genreName);
     await story.save();
-    res
-      .status(200)
-      .json({
-        status: "success",
-        message: "Genre removed from story successfully",
-      });
+    res.status(200).json({
+      status: "success",
+      message: "Genre removed from story successfully",
+    });
   } catch (error) {
     res
       .status(500)
       .json({ status: "error", message: "Failed to remove genre from story" });
+  }
+});
+
+// ==========================================
+// STORY GENRES MANAGEMENT ROUTES (Additional)
+// ==========================================
+app.post("/api/stories/:id/characters", async (req, res) => {
+  const { id } = req.params;
+  const { character } = req.body;
+  if (!character)
+    return res
+      .status(400)
+      .json({ status: "error", message: "Character details are required" });
+  try {
+    const story = await Story.findById(id);
+    if (!story)
+      return res
+        .status(404)
+        .json({ status: "error", message: "Story not found" });
+    if (story.characters.includes(character)) {
+      return res.status(409).json({
+        status: "error",
+        message: "Character already assigned to this story",
+      });
+    }
+    story.characters.push(character);
+    await story.save();
+    res.status(200).json({
+      status: "success",
+      message: "Character added to story successfully",
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ status: "error", message: "Failed to add character to story" });
+  }
+});
+
+app.delete("/api/stories/:id/genres/:character", async (req, res) => {
+  const { id, character } = req.params;
+  try {
+    const story = await Story.findById(id);
+    if (!story)
+      return res
+        .status(404)
+        .json({ status: "error", message: "Story not found" });
+
+    story.genres = story.characters.filter((c) => c !== character);
+    await story.save();
+    res.status(200).json({
+      status: "success",
+      message: "Character removed from story successfully",
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        status: "error",
+        message: "Failed to remove character from story",
+      });
   }
 });
 
@@ -612,12 +655,10 @@ app.get("/api/stories/:story_id/scripts", async (req, res) => {
       .sort({ order_id: 1 });
     res.status(200).json({ status: "success", data: rows });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        status: "error",
-        message: "Error compiling script elements mapping",
-      });
+    res.status(500).json({
+      status: "error",
+      message: "Error compiling script elements mapping",
+    });
   }
 });
 
@@ -690,13 +731,11 @@ app.post("/api/exports", async (req, res) => {
       format: format || "pdf",
     });
     await newExport.save();
-    res
-      .status(201)
-      .json({
-        status: "success",
-        message: "Export history recorded",
-        export_id: newExport._id,
-      });
+    res.status(201).json({
+      status: "success",
+      message: "Export history recorded",
+      export_id: newExport._id,
+    });
   } catch (error) {
     res
       .status(500)
@@ -740,13 +779,11 @@ app.put("/api/exports/:id", async (req, res) => {
       { file_name: sanitizedName },
       { new: true },
     );
-    res
-      .status(200)
-      .json({
-        status: "success",
-        message: "Export renamed successfully",
-        updated_name: sanitizedName,
-      });
+    res.status(200).json({
+      status: "success",
+      message: "Export renamed successfully",
+      updated_name: sanitizedName,
+    });
   } catch (error) {
     res
       .status(500)
@@ -763,12 +800,10 @@ app.post("/api/stories/:story_id/versions", async (req, res) => {
   const { version_name, script_data } = req.body;
 
   if (!version_name || !script_data)
-    return res
-      .status(400)
-      .json({
-        status: "error",
-        message: "Required dataset properties missing",
-      });
+    return res.status(400).json({
+      status: "error",
+      message: "Required dataset properties missing",
+    });
 
   try {
     const newVersion = new ScriptVersion({
@@ -777,13 +812,11 @@ app.post("/api/stories/:story_id/versions", async (req, res) => {
       script_data,
     });
     await newVersion.save();
-    res
-      .status(201)
-      .json({
-        status: "success",
-        version_id: newVersion._id,
-        message: "Script version snapshot archived safely! 🛡️",
-      });
+    res.status(201).json({
+      status: "success",
+      version_id: newVersion._id,
+      message: "Script version snapshot archived safely! 🛡️",
+    });
   } catch (error) {
     res
       .status(500)

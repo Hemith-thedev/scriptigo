@@ -17,6 +17,7 @@ export default function Dropdown({
   hasmultipleoptions = false,
   placeholder = "Select an option",
   type,
+  isMenuTop = false,
 }) {
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
@@ -88,15 +89,15 @@ export default function Dropdown({
         </p>
         <div className="flex justify-end items-center gap-4">
           {showClear && selectedOptions.length > 0 && (
-          <button
-            className="flex justify-start items-center h-fit p-2 rounded-xl text-red-400 hover:bg-red-200 cursor-pointer"
-            onClick={() => {
-              setSelectedOptions([]);
-              onoptionchange([]);
-            }}
-          >
-            <FaX />
-          </button>
+            <button
+              className="flex justify-start items-center h-fit p-2 rounded-xl text-red-400 hover:bg-red-200 cursor-pointer"
+              onClick={() => {
+                setSelectedOptions([]);
+                onoptionchange([]);
+              }}
+            >
+              <FaX />
+            </button>
           )}
           <IoMdArrowDropdown
             className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
@@ -104,7 +105,7 @@ export default function Dropdown({
         </div>
       </button>
       <ul
-        className={`absolute ${isOpen ? "top-16 pointer-events-auto blur-none opacity-100" : "top-20 pointer-events-none blur-xl opacity-0"} z-50 flex flex-col justify-start items-start max-h-64 w-full p-1.5 rounded-2xl bg-white-dark/40 backdrop-blur-lg border border-primary-80 overflow-y-auto no-scrollbar`}
+        className={`absolute ${isMenuTop ? "-top-56" : "top-16"} ${!isOpen && isMenuTop && "-top-64"} ${!isOpen && !isMenuTop && "top-24"} ${isOpen ? "pointer-events-auto opacity-100 blur-none" : "pointer-events-none opacity-0 blur-3xl"} z-50 flex flex-col justify-start items-start max-h-64 w-full p-1.5 rounded-2xl bg-white-dark/40 backdrop-blur-lg border border-primary-80 overflow-y-auto no-scrollbar`}
       >
         {/* Dropdown list lo starting lo "Unselect" option */}
         {options.map((option, index) => (

@@ -4,6 +4,7 @@ import Dropdown from "../components/common/Dropdown";
 import axios from "axios";
 import { FaPen, FaTrash, FaCheck, FaX } from "react-icons/fa6";
 import { GrAttachment } from "react-icons/gr";
+import { IoMdPerson } from "react-icons/io";
 
 export default function StoriesPage() {
   const [genres, setGenres] = useState([]);
@@ -105,7 +106,7 @@ export default function StoriesPage() {
     return (
       <div className="flex justify-start items-start h-fit w-full p-4 hover:bg-primary-90 rounded-2xl cursor-pointer">
         <div className="flex flex-col justify-start items-start h-fit w-full">
-          <div className="scriptigo-form no-padding">
+          <div className="flex h-fit w-full bg-red-500" onClick={() => navigate(`/stories/${story._id}`)}>
             <input
               type="text"
               className={`text-[1.75rem] ${isEditing ? "" : "border-b-transparent! px-0!"} h-fit w-full p-4 tracking-widest text-primary-50 border-b-2 border-b-primary-20 hover:border-b-primary-50 focus:border-b-primary-50 outline-none`}
@@ -134,6 +135,16 @@ export default function StoriesPage() {
           >
             <GrAttachment />
           </button>
+          <button
+            className="primary-button"
+            onClick={(e) => {
+              e.preventDefault();
+              navigate(`/stories/${story._id}/characters`);
+            }}
+          >
+            <IoMdPerson />
+          </button>
+          
           {isEditing ? (
             <button
               className="primary-button red"
