@@ -543,12 +543,12 @@ app.delete("/api/stories/:id/genres/:genreName", async (req, res) => {
 });
 
 // ==========================================
-// STORY GENRES MANAGEMENT ROUTES (Additional)
+// STORY CHARACTERS MANAGEMENT ROUTES (Additional)
 // ==========================================
 app.post("/api/stories/:id/characters", async (req, res) => {
   const { id } = req.params;
   const { character } = req.body;
-  if (!character)
+  if (!character || !character.name || !character.role)
     return res
       .status(400)
       .json({ status: "error", message: "Character details are required" });
@@ -558,49 +558,145 @@ app.post("/api/stories/:id/characters", async (req, res) => {
       return res
         .status(404)
         .json({ status: "error", message: "Story not found" });
-    if (story.characters.includes(character)) {
+    const isDuplicate = story.characters.some(
+      (c) =>
+        c.name.toLowerCase().trim() === character.name.toLowerCase().trim() &&
+        c.role.toLowerCase().trim() === character.role.toLowerCase().trim() &&
+        c.age.toLowerCase().trim() === character.age.toLowerCase().trim(),
+    );
+    if (isDuplicate) {
       return res.status(409).json({
         status: "error",
         message: "Character already assigned to this story",
       });
     }
-    story.characters.push(character);
+    const newCharacter = {
+      name: character.name.trim(),
+      age: character.age ? Number(character.age) : undefined,
+      role: character.role,
+      isStarring: character.isStarring || false,
+    };
+    story.characters.push(newCharacter);
     await story.save();
     res.status(200).json({
       status: "success",
       message: "Character added to story successfully",
-    });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ status: "error", message: "Failed to add character to story" });
-  }
-});
-
-app.delete("/api/stories/:id/genres/:character", async (req, res) => {
-  const { id, character } = req.params;
-  try {
-    const story = await Story.findById(id);
-    if (!story)
-      return res
-        .status(404)
-        .json({ status: "error", message: "Story not found" });
-
-    story.genres = story.characters.filter((c) => c !== character);
-    await story.save();
-    res.status(200).json({
-      status: "success",
-      message: "Character removed from story successfully",
+      data: story,
     });
   } catch (error) {
     res
       .status(500)
       .json({
         status: "error",
-        message: "Failed to remove character from story",
+        message: "Failed to add character to story",
       });
   }
 });
+
+app.delete("/api/stories/:id/character/:characterId", async (req, res) => {
+  // Clear ga characterId ani param name pettukundham bujji!
+  const { id, characterId } = req.params; 
+  
+  try {
+    const story = await Story.findById(id);
+    if (!story) {
+      return res
+        .status(404)
+        .json({ status: "error", message: "Story not found" });
+    }
+
+    // Ikada mana characters array nundi matching id unna character ni tesedham! ✨
+    story.characters = story.characters.filter(
+      (c) => c._id.toString() !== characterId
+    );
+
+    await story.save();
+    
+    res.status(200).json({
+      status: "success",
+      message: "Character removed from story successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: "Failed to remove character from story",
+    });
+  }
+});
+
+app.put("/api/stories/:id/character/:characterId", async (req, res) => {
+  const { id, characterId } = req.params;
+  const { character } = req.body;
+
+  // 1. Minimum validation check
+  if (!character || !character.name || !character.role) {
+    return res.status(400).json({ 
+      status: "error", 
+      message: "Character name and role are required for updates" 
+    });
+  }
+
+  try {
+    const story = await Story.findById(id);
+    if (!story) {
+      return res.status(404).json({ 
+        status: "error", 
+        message: "Story not found" 
+      });
+    }
+
+    // 2. Find the target character inside the characters array
+    const targetCharacter = story.characters.id(characterId);
+    if (!targetCharacter) {
+      return res.status(404).json({ 
+        status: "error", 
+        message: "Character not found in this story" 
+      });
+    }
+
+    // 3. Duplicate logic (skip checking against the character we are currently updating)
+    const normalizedInputAge = character.age ? String(character.age).toLowerCase().trim() : "";
+    
+    const isDuplicate = story.characters.some((c) => {
+      if (c._id.toString() === characterId) return false; // Skip itself
+      
+      const existingAge = c.age ? String(c.age).toLowerCase().trim() : "";
+      return (
+        c.name.toLowerCase().trim() === character.name.toLowerCase().trim() &&
+        c.role.toLowerCase().trim() === character.role.toLowerCase().trim() &&
+        existingAge === normalizedInputAge
+      );
+    });
+
+    if (isDuplicate) {
+      return res.status(409).json({
+        status: "error",
+        message: "Another character with these details already exists in this story",
+      });
+    }
+
+    // 4. Update fields using Mongoose's document assignment
+    targetCharacter.name = character.name.trim();
+    targetCharacter.role = character.role.trim();
+    targetCharacter.age = character.age ? Number(character.age) : undefined;
+    targetCharacter.isStarring = character.isStarring || false;
+
+    // 5. Commit modifications to MongoDB
+    await story.save();
+
+    res.status(200).json({
+      status: "success",
+      message: "Character details updated successfully",
+      data: story,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: "Failed to update character details",
+    });
+  }
+});
+
 
 // ==========================================
 // SCRIPTS ROUTES 📜

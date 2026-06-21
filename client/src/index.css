@@ -4,6 +4,10 @@
 /* 2. Tailwind Core Framework Initialization */
 @import "tailwindcss";
 
+:root {
+  --hue-color: 220;
+}
+
 /* 3. Tailwind v4 Custom Theme Configurations */
 @theme {
   --font-lexend: "Lexend Deca", sans-serif;
@@ -19,15 +23,15 @@
   --color-white-dark: #d1d1d6;
 
   /* --- BLUE SERIES  --- */
-  --color-primary-10: hsl(220, 100%, 10%);
-  --color-primary-20: hsl(220, 100%, 20%);
-  --color-primary-30: hsl(220, 100%, 30%);
-  --color-primary-40: hsl(220, 100%, 40%);
-  --color-primary-50: hsl(220, 100%, 50%);
-  --color-primary-60: hsl(220, 100%, 60%);
-  --color-primary-70: hsl(220, 100%, 70%);
-  --color-primary-80: hsl(220, 100%, 80%);
-  --color-primary-90: hsl(220, 100%, 90%);
+  --color-primary-10: hsl(var(--hue-color), 100%, 10%);
+  --color-primary-20: hsl(var(--hue-color), 100%, 20%);
+  --color-primary-30: hsl(var(--hue-color), 100%, 30%);
+  --color-primary-40: hsl(var(--hue-color), 100%, 40%);
+  --color-primary-50: hsl(var(--hue-color), 100%, 50%);
+  --color-primary-60: hsl(var(--hue-color), 100%, 60%);
+  --color-primary-70: hsl(var(--hue-color), 100%, 70%);
+  --color-primary-80: hsl(var(--hue-color), 100%, 80%);
+  --color-primary-90: hsl(var(--hue-color), 100%, 90%);
 }
 
 /* 4. Global Structural Overrides & Custom CSS Elements */
@@ -43,27 +47,27 @@
   @apply flex flex-col justify-start items-center min-h-screen min-w-full max-w-7xl;
   &.light {
     @apply bg-white-dark text-black-light;
-    --color-primary-10: hsl(220, 100%, 10%);
-    --color-primary-20: hsl(220, 100%, 20%);
-    --color-primary-30: hsl(220, 100%, 30%);
-    --color-primary-40: hsl(220, 100%, 40%);
-    --color-primary-50: hsl(220, 100%, 50%);
-    --color-primary-60: hsl(220, 100%, 60%);
-    --color-primary-70: hsl(220, 100%, 70%);
-    --color-primary-80: hsl(220, 100%, 80%);
-    --color-primary-90: hsl(220, 100%, 90%);
+    --color-primary-10: hsl(var(--hue-color), 100%, 10%);
+    --color-primary-20: hsl(var(--hue-color), 100%, 20%);
+    --color-primary-30: hsl(var(--hue-color), 100%, 30%);
+    --color-primary-40: hsl(var(--hue-color), 100%, 40%);
+    --color-primary-50: hsl(var(--hue-color), 100%, 50%);
+    --color-primary-60: hsl(var(--hue-color), 100%, 60%);
+    --color-primary-70: hsl(var(--hue-color), 100%, 70%);
+    --color-primary-80: hsl(var(--hue-color), 100%, 80%);
+    --color-primary-90: hsl(var(--hue-color), 100%, 90%);
   }
   &.dark {
     @apply bg-black-dark text-white-light;
-    --color-primary-10: hsl(220, 100%, 90%);
-    --color-primary-20: hsl(220, 100%, 80%);
-    --color-primary-30: hsl(220, 100%, 70%);
-    --color-primary-40: hsl(220, 100%, 60%);
-    --color-primary-50: hsl(220, 100%, 50%);
-    --color-primary-60: hsl(220, 100%, 40%);
-    --color-primary-70: hsl(220, 100%, 30%);
-    --color-primary-80: hsl(220, 100%, 20%);
-    --color-primary-90: hsl(220, 100%, 10%);
+    --color-primary-10: hsl(var(--hue-color), 100%, 90%);
+    --color-primary-20: hsl(var(--hue-color), 100%, 80%);
+    --color-primary-30: hsl(var(--hue-color), 100%, 70%);
+    --color-primary-40: hsl(var(--hue-color), 100%, 60%);
+    --color-primary-50: hsl(var(--hue-color), 100%, 50%);
+    --color-primary-60: hsl(var(--hue-color), 100%, 40%);
+    --color-primary-70: hsl(var(--hue-color), 100%, 30%);
+    --color-primary-80: hsl(var(--hue-color), 100%, 20%);
+    --color-primary-90: hsl(var(--hue-color), 100%, 10%);
   }
 }
 
@@ -300,6 +304,17 @@ input[type="range"] {
       grid-column: 1 / -1;
     }
   }
+}
+
+/* Mee index.css leda App.css lo kinda snippets add cheyandi */
+
+/* Safari & Chrome browser spinners design setup */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  background-color: hsl(220, 100%, 50%) !important; /* Mee favorite color */
+  cursor: pointer;
+  height: 30px;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar {

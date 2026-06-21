@@ -18,6 +18,8 @@ export default function Dropdown({
   placeholder = "Select an option",
   type,
   isMenuTop = false,
+  hasError = false,
+  selectedValue = "",
 }) {
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
@@ -33,12 +35,18 @@ export default function Dropdown({
         ? selectedOptions.filter((o) => o.value !== option.value)
         : [...selectedOptions, option];
     } else {
-      newSelection = [option];
+      newSelection = [option] || "";
       ontoggle(); // Close the dropdown
     }
 
     setSelectedOptions(newSelection);
-    if (onoptionchange) onoptionchange(newSelection);
+    if (onoptionchange) {
+      if (hasmultipleoptions) {
+        onoptionchange(newSelection);
+      } else {
+        onoptionchange(option);
+      }
+    }
 
     // Select chesina ventane state reset cheyi,
     // malli open chesinappudu timer work avvali kabatti
@@ -67,11 +75,22 @@ export default function Dropdown({
       setShowClear(false);
     }
   }, [openWhen, selectedOptions]);
-  // Determine display text
+
+  // Change this line inside Dropdown.jsx [source: 1]
   const displayPlaceholder =
     selectedOptions.length > 0
-      ? selectedOptions.map((o) => o.label).join(", ")
+      ? `${placeholder} - ${selectedOptions.map((o) => o.label).join(", ")}`
       : placeholder;
+
+  useEffect(() => {
+    if (!selectedValue) {
+      setSelectedOptions([]); // Clears selection instantly when parent resets state to ""
+    } else if (!hasmultipleoptions) {
+      // Keep dropdown display in sync if a single value is set from outside
+      const matched = options.find((o) => o.value === selectedValue);
+      if (matched) setSelectedOptions([matched]);
+    }
+  }, [selectedValue, options, hasmultipleoptions]);
 
   return (
     <div
@@ -79,26 +98,24 @@ export default function Dropdown({
       ref={dropdownRef}
     >
       <button
-        className={`flex justify-between items-center h-full w-full border-b-2 py-3 px-4 ${isOpen ? "border-b-primary-50" : "border-b-primary-20"} px-2 outline-none`}
+        className={`flex justify-between items-center h-full w-full border-b-2 py-3 px-4 ${isOpen ? "border-b-primary-50" : "border-b-primary-20"} ${hasError ? "border-b-red-500" : ""} px-2 outline-none`}
       >
         <p
-          className={`truncate ${isOpen ? "text-primary-50" : "text-primary-20"}`}
+          className={`truncate ${isOpen ? "text-primary-50" : "text-primary-20"} ${hasError ? "text-red-500" : ""}`}
           onClick={() => ontoggle()}
         >
           {displayPlaceholder}
         </p>
         <div className="flex justify-end items-center gap-4">
-          {showClear && selectedOptions.length > 0 && (
-            <button
-              className="flex justify-start items-center h-fit p-2 rounded-xl text-red-400 hover:bg-red-200 cursor-pointer"
-              onClick={() => {
-                setSelectedOptions([]);
-                onoptionchange([]);
-              }}
-            >
-              <FaX />
-            </button>
-          )}
+          <div
+            className={`flex justify-start items-center h-fit p-2 rounded-xl text-red-400 hover:bg-red-200 cursor-pointer ${selectedOptions.length ? "opacity-100 blur-none pointer-events-auto" : "opacity-0 blur-3xl pointer-events-none"}`}
+            onClick={() => {
+              setSelectedOptions([]);
+              onoptionchange([]);
+            }}
+          >
+            <FaX />
+          </div>
           <IoMdArrowDropdown
             className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
           />
