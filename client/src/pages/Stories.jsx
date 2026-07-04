@@ -2,21 +2,54 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Dropdown from "../components/common/Dropdown";
 import axios from "axios";
-import { FaPen, FaTrash, FaCheck, FaX } from "react-icons/fa6";
+import { FaPen, FaTrash, FaCheck, FaX, FaChevronDown } from "react-icons/fa6";
 import { GrAttachment } from "react-icons/gr";
 import { IoMdPerson } from "react-icons/io";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 
 export default function StoriesPage() {
+  const [pageLoaded, setPageLoaded] = useState(false);
   const [genres, setGenres] = useState([]);
   const [stories, setStories] = useState([]);
   const [genresDropdownOpen, setGenresDropdownOpen] = useState(false);
-  const [placeholder, setPlaceholder] = useState("Name");
   const [data, setData] = useState({
     title: "",
     genres: [],
   });
   const [currentPage, setCurrentPage] = useState(1);
   const storiesPerPage = 15;
+  const [formPlaceholder, setFormPlaceholder] = useState("Title");
+  const [errors, setErrors] = useState({});
+  useEffect(() => {
+    setPageLoaded(true);
+  }, []);
+  useGSAP(
+    () => {
+      if (!pageLoaded) return;
+      const tl = gsap.timeline({ delay: 0.2 });
+      tl.fromTo(
+        [
+          "#story-page-form-heading",
+          ".form-fields > *",
+          ".heading",
+          ".stories-container",
+        ],
+        { opacity: 0, y: 20 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.5,
+          stagger: 0.15,
+          ease: "power2.out",
+        },
+      );
+    },
+    {
+      scope: document.querySelector(".scriptigo-page"),
+      dependencies: [pageLoaded],
+    }, // Ikkada dependencies important!
+  );
   const fetchGenres = async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/genres");
@@ -51,10 +84,13 @@ export default function StoriesPage() {
   );
   const navigate = useNavigate();
   const StoryCard = ({ story }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [isHovered, setIsHovered] = useState(false);
     const [name, setName] = useState(story.title);
     const [editingName, setEditingName] = useState(story.title || "");
     const [isEditing, setIsEditing] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [placeholder, setPlaceholder] = useState("Name");
     const formatDate = (dateString) => {
       if (!dateString) return "Just Now";
       const date = new Date(dateString);
@@ -104,143 +140,220 @@ export default function StoriesPage() {
       }
     };
     return (
-      <div className="flex justify-start items-start h-fit w-full p-4 hover:bg-primary-90 rounded-2xl cursor-pointer">
+      <div
+        className="story-card relative flex justify-start items-start h-fit w-full p-4 rounded-2xl cursor-pointer"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseOver={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
         <div className="flex flex-col justify-start items-start h-fit w-full">
-          <div className="flex h-fit w-full bg-red-500" onClick={() => navigate(`/stories/${story._id}`)}>
-            <input
-              type="text"
-              className={`text-[1.75rem] ${isEditing ? "" : "border-b-transparent! px-0!"} h-fit w-full p-4 tracking-widest text-primary-50 border-b-2 border-b-primary-20 hover:border-b-primary-50 focus:border-b-primary-50 outline-none`}
-              placeholder={placeholder}
-              value={isEditing ? editingName : name}
-              onChange={(e) => setEditingName(e.target.value)}
-              disabled={!isEditing}
-              autoFocus
-              title={name}
-            />
+          <div
+            className="flex flex-col justify-start items-start h-fit w-full"
+            onClick={() =>
+              isEditing ? null : navigate(`/stories/${story._id}/scripts`)
+            }
+          >
+            <div className="flex h-fit w-full pointer-events-auto">
+              <input
+                type="text"
+                className={`text-[1.75rem] ${isEditing ? "pointer-events-auto" : "border-b-transparent! px-0! pointer-events-none"} h-fit w-full p-4 tracking-widest text-primary-50 border-b-2 border-b-primary-20 hover:border-b-primary-50 focus:border-b-primary-50 outline-none`}
+                placeholder={placeholder}
+                value={isEditing ? editingName : name}
+                onChange={(e) => setEditingName(e.target.value)}
+                disabled={!isEditing}
+                autoFocus
+                title={name}
+              />
+            </div>
+            <p className="text-gray-500">
+              {formatDate(story.createdAt)}
+              {String(story.updatedAt) !== String(story.createdAt)
+                ? ` | Updated At: ${formatDate(story.updatedAt)}`
+                : ""}
+            </p>
           </div>
-          <p className="text-gray-500">
-            {formatDate(story.createdAt)}
-            {String(story.updatedAt) !== String(story.createdAt)
-              ? ` | Updated At: ${formatDate(story.updatedAt)}`
-              : ""}
-          </p>
-        </div>
-        <div className="flex justify-end items-start gap-2">
-          <button
-            className="primary-button green"
-            onClick={(e) => {
-              e.preventDefault();
-              navigate(`/stories/${story._id}/attachments`);
-            }}
-          >
-            <GrAttachment />
-          </button>
-          <button
-            className="primary-button"
-            onClick={(e) => {
-              e.preventDefault();
-              navigate(`/stories/${story._id}/characters`);
-            }}
-          >
-            <IoMdPerson />
-          </button>
-          
-          {isEditing ? (
-            <button
-              className="primary-button red"
-              onClick={(e) => {
-                e.preventDefault();
-                setIsEditing(false);
-              }}
-            >
-              <FaX />
-            </button>
-          ) : isDeleting ? (
-            <button
-              className="primary-button green"
-              onClick={(e) => {
-                e.preventDefault();
-                handleDelete(story._id);
-              }}
-            >
-              <FaCheck />
-            </button>
-          ) : (
-            <button
-              className="primary-button yellow"
-              onClick={(e) => {
-                e.preventDefault();
-                setIsEditing(true);
-              }}
-            >
-              <FaPen />
-            </button>
-          )}
-          {isEditing ? (
-            <button
-              className="primary-button green"
-              onClick={(e) => {
-                e.preventDefault();
-                handleEdit(story._id, editingName, story.genres);
-              }}
-            >
-              <FaCheck />
-            </button>
-          ) : isDeleting ? (
-            <button
-              className="primary-button red"
-              onClick={(e) => {
-                e.preventDefault();
-                setIsDeleting(false);
-              }}
-            >
-              <FaX />
-            </button>
-          ) : (
-            <button
-              className="primary-button red"
-              onClick={(e) => {
-                e.preventDefault();
-                setIsDeleting(true);
-              }}
-            >
-              <FaTrash />
-            </button>
+          {isOpen && (
+            <>
+              <h4 className="mt-4">GENRES</h4>
+              <div className="flex flex-wrap gap-2 h-fit w-full">
+                {story.genres.map((g) => (
+                  <div
+                    key={g._id}
+                    className="p-3 rounded-2xl bg-primary-90 text-primary-60"
+                  >
+                    <p>{g}</p>
+                  </div>
+                ))}
+              </div>
+              <h4 className="mt-8">TAGS</h4>
+              <div className="flex flex-wrap gap-2 h-fit w-full">
+                {story.tags.length === 0 ? (
+                  <p>No tags foud</p>
+                ) : Array.isArray(story.tags) ? (
+                  story.tags.map((t, index) => (
+                    <div
+                      key={index}
+                      style={{ color: t.color }}
+                      className={`p-3 bg-white-dark/50 rounded-2xl`}
+                    >
+                      <p>{t.name}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p>The tags are not in an array!</p>
+                )}
+              </div>
+            </>
           )}
         </div>
+        {isHovered && (
+          <div className="options absolute top-4 right-4 flex justify-end items-start gap-2">
+            {!isEditing && (
+              <>
+                <button
+                  className="primary-button pink"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate(`/stories/${story._id}/attachments`);
+                  }}
+                >
+                  <GrAttachment />
+                </button>
+                <button
+                  className="primary-button green"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate(`/stories/${story._id}/characters`);
+                  }}
+                >
+                  <IoMdPerson />
+                </button>
+              </>
+            )}
+
+            {isEditing ? (
+              <button
+                className="primary-button red"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIsEditing(false);
+                }}
+              >
+                <FaX />
+              </button>
+            ) : isDeleting ? (
+              <button
+                className="primary-button green"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleDelete(story._id);
+                }}
+              >
+                <FaCheck />
+              </button>
+            ) : (
+              <button
+                className="primary-button yellow"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIsEditing(true);
+                }}
+              >
+                <FaPen />
+              </button>
+            )}
+            {isEditing ? (
+              <button
+                className="primary-button green"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleEdit(story._id, editingName, story.genres);
+                }}
+              >
+                <FaCheck />
+              </button>
+            ) : isDeleting ? (
+              <button
+                className="primary-button red"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIsDeleting(false);
+                }}
+              >
+                <FaX />
+              </button>
+            ) : (
+              <button
+                className="primary-button red"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIsDeleting(true);
+                }}
+              >
+                <FaTrash />
+              </button>
+            )}
+            {!isEditing && (
+              <button className="primary-button">
+                <FaChevronDown
+                  style={{
+                    rotate: isOpen ? "-90deg" : "0deg",
+                  }}
+                  onClick={() => setIsOpen((prev) => !prev)}
+                />
+              </button>
+            )}
+          </div>
+        )}
       </div>
     );
   };
+  const Validate = async () => {
+    try {
+      const newErrors = {};
+      if (!data.title.trim()) newErrors.title = "Please, enter the story title";
+      if (data.genres.length === 0)
+        newErrors.genres = "At least one genre is required";
+      console.log(newErrors);
+      return newErrors;
+    } catch (error) {
+      console.error(error);
+    }
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!data.title.trim() || !data.genres.length === 0) {
-      setPlaceholder("Please, enter a title or select atleast any one Genre!");
-      setTimeout(() => {
-        setPlaceholder("Title");
-      }, 2000);
-      return;
-    }
+    // if (!data.title.trim() || !data.genres.length === 0) {
+    //   setFormPlaceholder("Please, enter a title or select atleast any one Genre!");
+    //   setTimeout(() => {
+    //     setFormPlaceholder("Title");
+    //   }, 2000);
+    //   return;
+    // }
     try {
-      const res = await axios.post("http://localhost:5000/api/stories", {
-        title: data.title,
-        genres: data.genres,
-      });
-      fetchStories();
-      fetchGenres();
-      setData({
-        title: "",
-        genres: [],
-      });
-      setCurrentPage(1);
-      setPlaceholder(res.data.message);
-      setTimeout(() => {
-        setPlaceholder("Title");
-      }, 2000);
+      const validationErrors = await Validate();
+      if (Object.keys(validationErrors).length === 0) {
+        setErrors({});
+        const res = await axios.post("http://localhost:5000/api/stories", {
+          title: data.title,
+          genres: data.genres,
+        });
+        if (res.status === 201) {
+          fetchStories();
+          fetchGenres();
+          setData({
+            title: "",
+            genres: [],
+          });
+        }
+        setFormPlaceholder(res.data.message);
+        setTimeout(() => {
+          setFormPlaceholder("Title");
+        }, 2000);
+      } else {
+        setErrors(validationErrors);
+      }
     } catch (error) {
-      setPlaceholder(error);
-      setTimeout(() => {
-        setPlaceholder("Title");
-      }, 2000);
+      console.error(error);
     }
   };
   return (
@@ -253,40 +366,57 @@ export default function StoriesPage() {
             <form className="flex h-fit w-full z-20" onSubmit={handleSubmit}>
               <div className="flex flex-col gap-4 h-fit w-full">
                 <p
-                  className="p-4 text-primary-50 bg-primary-90 h-fit w-fit rounded-xl"
+                  className="p-4 text-primary-50 bg-primary-90 h-fit w-fit rounded-xl opacity-0"
                   id="story-page-form-heading"
                 >
                   Add Story
                 </p>
-                <div className="form-fields grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] h-fit w-full gap-8">
-                  <input
-                    type="text"
-                    className="h-fit w-full p-4 tracking-widest text-primary-50 border-b-2 border-b-primary-20 hover:border-b-primary-50 focus:border-b-primary-50 outline-none"
-                    placeholder="Title"
-                    value={data.title}
-                    onChange={(e) =>
-                      setData((prev) => ({ ...prev, title: e.target.value }))
-                    }
-                  />
-                  <Dropdown
-                    openWhen={genresDropdownOpen}
-                    options={genres}
-                    placeholder={"Genres"}
-                    hasmultipleoptions={true}
-                    onoptionchange={(selectedObjects) => {
-                      // Ikkada object list ni just values (array of strings) ki marchi update cheyyi
-                      const selectedValues = selectedObjects.map(
-                        (obj) => obj.value,
-                      );
-                      setData((prev) => ({
-                        ...prev,
-                        genres: selectedValues,
-                      }));
-                    }}
-                    ontoggle={() => setGenresDropdownOpen(!genresDropdownOpen)}
-                    type={"genres"}
-                  />
-                  <button className="primary-button text-nowrap" type="submit">
+                <div className="form-fields grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] items-start h-fit w-full gap-8">
+                  <div className="flex flex-col justify-start items-start h-fit w-full opacity-0 z-20">
+                    <input
+                      type="text"
+                      className={`h-fit w-full p-4 tracking-widest text-primary-50 ${errors.title ? "placeholder:text-red-400 border-b-red-500!" : ""} border-b-2 border-b-primary-20 hover:border-b-primary-50 focus:border-b-primary-50 outline-none`}
+                      placeholder={formPlaceholder}
+                      value={data.title}
+                      onChange={(e) =>
+                        setData((prev) => ({ ...prev, title: e.target.value }))
+                      }
+                    />
+                    {errors.title && (
+                      <span className="text-red-400">{errors.title}</span>
+                    )}
+                  </div>
+                  <div className="flex flex-col justify-start items-start h-fit w-full opacity-0 z-20">
+                    <Dropdown
+                      openWhen={genresDropdownOpen}
+                      options={genres}
+                      placeholder={"Genres"}
+                      hasmultipleoptions={true}
+                      onoptionchange={(selectedObjects) => {
+                        // Ikkada object list ni just values (array of strings) ki marchi update cheyyi
+                        const selectedValues = selectedObjects.map(
+                          (obj) => obj.value,
+                        );
+                        setData((prev) => ({
+                          ...prev,
+                          genres: selectedValues,
+                        }));
+                      }}
+                      ontoggle={() =>
+                        setGenresDropdownOpen(!genresDropdownOpen)
+                      }
+                      type={"genres"}
+                      hasError={errors.genres}
+                      selectedValue={data.genres}
+                    />
+                    {errors.genres && (
+                      <span className="text-red-400">{errors.genres}</span>
+                    )}
+                  </div>
+                  <button
+                    className="primary-button text-nowrap opacity-0 z-10 py-4.5!"
+                    type="submit"
+                  >
                     Add Story
                   </button>
                 </div>
@@ -296,8 +426,8 @@ export default function StoriesPage() {
         </section>
         <section className="scriptigo-section top-gap">
           <div className="scriptigo-section-wrapper flex-col gap-2">
-            <h2>Your imaginations!</h2>
-            <div className="flex flex-col justify-start items-start h-fit w-full p-4 bg-white-theme rounded-4xl">
+            <h2 className="heading opacity-0">Your imaginations!</h2>
+            <div className="stories-container flex flex-col justify-start items-start h-fit w-full p-4 bg-white-theme rounded-4xl opacity-0">
               {stories.length === 0 ? (
                 <p>No Stories found!😭... add one using the form✨</p>
               ) : (

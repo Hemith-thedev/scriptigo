@@ -6,6 +6,7 @@ import { FaPen, FaTrash } from "react-icons/fa6";
 
 const roleOptions = [
   { label: "Anti-Hero", value: "AntiHero", category: "Core Narrative" },
+  { label: "Arbiter / Judge", value: "Arbiter", category: "Plot & Case" }, // Added: Neutral decision maker
   {
     label: "Background Actor",
     value: "BackgroundActor",
@@ -27,9 +28,14 @@ const roleOptions = [
   { label: "Friend", value: "Friend", category: "Family" },
   { label: "Grandparent", value: "Grandparent", category: "Family" },
   { label: "Guide", value: "Guide", category: "Core Narrative" },
+  { label: "Principal", value: "principal", category: "Education" },
+  { label: "Teacher", value: "teacher", category: "Education" },
+  { label: "Lecturer", value: "lecturer", category: "Education" },
+  { label: "Student", value: "student", category: "Education" },
   { label: "Hero", value: "Hero", category: "Core Narrative" },
   { label: "Heroine", value: "Heroine", category: "Core Narrative" },
   { label: "Love Interest", value: "LoveInterest", category: "Core Narrative" },
+  { label: "Magistrate", value: "Magistrate", category: "Plot & Case" }, // Added: Strict authority figure
   { label: "Mentor", value: "Mentor", category: "Core Narrative" },
   { label: "Mother", value: "Mother", category: "Family" },
   { label: "Narrator", value: "Narrator", category: "Production" },
@@ -49,6 +55,69 @@ const roleOptions = [
   { label: "Villain", value: "Villain", category: "Core Narrative" },
   { label: "Voice Actor", value: "VoiceActor", category: "Production" },
 ];
+
+const CharacterCard = ({ char, ondelete }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingName, setEditingName] = useState(char.name);
+  const [placeholder, setPlaceholder] = useState("");
+  const handleDeleteCharacter = async (characterId) => {
+    if (!characterId || !char._id) return;
+    try {
+      const res = await axios.delete(
+        `http://localhost:5000/api/stories/${char._id}/character/${characterId}`,
+      );
+      await alert(res.data.message);
+      ondelete(res.data.message);
+    } catch (error) {
+      console.error("❌ Delete character failed:", error);
+      alert(error.response?.data?.message || "Could not delete character");
+    }
+  };
+  return (
+    <div className="flex justify-between items-start h-fit w-full p-4 hover:bg-primary-90 rounded-2xl transition-all">
+      <div className="flex flex-col justify-start items-start h-fit w-full">
+        <input
+          type="text"
+          className={`text-[1.75rem] ${isEditing ? "" : "border-b-transparent! px-0!"} h-fit w-full p-4 tracking-widest text-primary-50 border-b-2 border-b-primary-20 hover:border-b-primary-50 focus:border-b-primary-50 outline-none`}
+          placeholder={placeholder}
+          value={isEditing ? editingName : char.name}
+          onChange={(e) => setEditingName(e.target.value)}
+          disabled={!isEditing}
+          autoFocus
+          title={char.name}
+        />
+        {/* <p className="text-[1.5rem] tracking-widest text-primary-50 font-semibold">
+          {editingName}
+        </p> */}
+        <p className="text-gray-500 text-sm mt-1">
+          Role: <span className="text-primary-20 font-medium">{char.role}</span>{" "}
+          | Age: {char.age}
+        </p>
+      </div>
+      <div className="flex flex-col justify-start items-end gap-4 h-fit w-fit">
+        {char.isStarring && (
+          <span className="bg-amber-100 text-amber-700 text-xs text-nowrap font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1">
+            🌟 Star Cast
+          </span>
+        )}
+        <div className="flex justify-end items-start gap-2">
+          <button
+            className="primary-button green"
+            onClick={() => handleDeleteCharacter(char._id)}
+          >
+            <FaPen />
+          </button>
+          <button
+            className="primary-button red"
+            onClick={() => handleDeleteCharacter(char._id)}
+          >
+            <FaTrash />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function StoryCharactersPage() {
   const { id } = useParams();
@@ -183,27 +252,9 @@ export default function StoryCharactersPage() {
     }
   };
 
-  const handleDeleteCharacter = async (characterId) => {
-    if (!characterId || !id) return; // 'id' comes directly from useParams()
-    try {
-      const res = await axios.delete(
-        `http://localhost:5000/api/stories/${id}/character/${characterId}`,
-      );
-      fetchStory();
-      await alert(res.data.message);
-      setName("");
-      setRole("");
-      setAge("");
-      setIsStarring(false);
-    } catch (error) {
-      console.error("❌ Delete character fail ayyindi:", error);
-      alert(error.response?.data?.message || "Could not delete character");
-    }
-  };
-
   return (
     <main className="scriptigo-page">
-      <section className="scriptigo-section flex-col">
+      <section className="scriptigo-section flex-col gap-8">
         <h3 className="text-xl font-bold mb-6">
           {story.title || "Loading Story..."}
         </h3>
@@ -282,16 +333,13 @@ export default function StoryCharactersPage() {
                 onChange={(e) => setIsStarring(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-50"></div>
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-50"></div>
             </label>
           </div>
         </div>
 
         {/* Validation Button */}
-        <button
-          onClick={handleValidateForm}
-          className="mt-10 px-6 py-3 bg-primary-50 text-white rounded-xl shadow-md hover:bg-primary-60 font-semibold active:scale-95 transition-transform"
-        >
+        <button onClick={handleValidateForm} className="primary-button">
           Add Character 🎭
         </button>
       </section>
@@ -301,7 +349,7 @@ export default function StoryCharactersPage() {
         <div className="scriptigo-section-wrapper flex-col gap-2">
           <h2>Cast & Characters Collection! 🎬</h2>
 
-          <div className="flex flex-col justify-start items-start h-fit w-full p-4 bg-white-theme rounded-4xl">
+          <div className="flex flex-col justify-start items-start w-full p-4 bg-white-theme rounded-4xl overflow-y-auto no-scrollbar">
             {characters.length === 0 ? (
               <p>No characters found!😭... add one using the form above✨</p>
             ) : (
@@ -321,59 +369,33 @@ export default function StoryCharactersPage() {
                   <>
                     {/* Render Loop for Paginated Cards */}
                     <div className="flex flex-col justify-start items-start h-fit w-full">
-                      {paginatedCharacters.map((char, index) => (
-                        <React.Fragment key={char._id || index}>
-                          {/* Character Styled Layout Card */}
-                          <div className="flex justify-between items-start h-fit w-full p-4 hover:bg-primary-90 rounded-2xl transition-all">
-                            <div className="flex flex-col justify-start items-start h-fit w-full">
-                              <p className="text-[1.5rem] tracking-widest text-primary-50 font-semibold">
-                                {char.name}
-                              </p>
-                              <p className="text-gray-500 text-sm mt-1">
-                                Role:{" "}
-                                <span className="text-primary-20 font-medium">
-                                  {char.role}
-                                </span>{" "}
-                                | Age: {char.age}
-                              </p>
-                            </div>
-                            <div className="flex flex-col justify-start items-end gap-4 h-fit w-fit">
-                              {char.isStarring && (
-                                <span className="bg-amber-100 text-amber-700 text-xs text-nowrap font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1">
-                                  🌟 Star Cast
-                                </span>
-                              )}
-                              <div className="flex justify-end items-start gap-2">
-                                <button
-                                  className="primary-button green"
-                                  onClick={() =>
-                                    handleDeleteCharacter(char._id)
-                                  }
-                                >
-                                  <FaPen />
-                                </button>
-                                <button
-                                  className="primary-button red"
-                                  onClick={() =>
-                                    handleDeleteCharacter(char._id)
-                                  }
-                                >
-                                  <FaTrash />
-                                </button>
-                              </div>
-                            </div>
-                          </div>
+                      {paginatedCharacters
+                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .map((char, index) => (
+                          <React.Fragment key={char._id || index}>
+                            {/* Character Styled Layout Card */}
+                            <CharacterCard
+                              char={char}
+                              ondelete={(message) => {
+                                fetchStory();
+                                setName("");
+                                setRole("");
+                                setAge("");
+                                setIsStarring(false);
+                                alert(message);
+                              }}
+                            />
 
-                          {/* Dynamic Divider Insertion logic */}
-                          {index !== paginatedCharacters.length - 1 && (
-                            <Divider />
-                          )}
-                        </React.Fragment>
-                      ))}
+                            {/* Dynamic Divider Insertion logic */}
+                            {index !== paginatedCharacters.length - 1 && (
+                              <Divider />
+                            )}
+                          </React.Fragment>
+                        ))}
                     </div>
 
                     {/* Pagination Dynamic Control Switches Footer */}
-                    <div className="flex justify-center items-center gap-4 h-fit w-full mt-8 pt-4 border-t border-t-primary-80">
+                    <div className="flex justify-center items-center gap-4 h-fit w-full mt-4 pt-4 border-t-2 border-t-primary-50">
                       <button
                         className="primary-button"
                         disabled={currentPage === 1}

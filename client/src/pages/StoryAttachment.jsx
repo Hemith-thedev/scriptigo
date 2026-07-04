@@ -2,11 +2,14 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { FaX, FaPlus } from "react-icons/fa6";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 
 const base_url = "http://localhost:5000/api";
 
 export default function StoryAttachmentPage() {
   const { id } = useParams();
+  const [pageLoaded, setPageLoaded] = useState(false);
   const [story, setStory] = useState({});
   const [tags, setTags] = useState([]);
   const [genres, setGenres] = useState([]);
@@ -15,6 +18,38 @@ export default function StoryAttachmentPage() {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editingTitle, setEditingTitle] = useState("");
+  useEffect(() => {
+    setPageLoaded(true);
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }, []);
+  useGSAP(
+    () => {
+      if (!pageLoaded) return;
+      const tl = gsap.timeline({ delay: 0.2 });
+      tl.fromTo(
+        [
+          ".story-title",
+          ".scriptigo-section-wrapper > h4", // Titles
+          ".scriptigo-section-wrapper > div", // Containers & Tags
+        ],
+        { opacity: 0, y: 20 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.5,
+          stagger: 0.25, // Stagger koncham thaggichanu, smooth ga untundi
+          ease: "power2.out",
+        },
+      );
+    },
+    {
+      scope: document.querySelector(".scriptigo-page"),
+      dependencies: [pageLoaded],
+    },
+  );
 
   // Fetch story details
   const fetchStory = async () => {
@@ -87,17 +122,19 @@ export default function StoryAttachmentPage() {
   }, [genres, assignedGenres]);
 
   // Add tag to story
-  const handleAddTag = async (tagName) => {
-    setAssignedTags([...assignedTags, tagName]);
+  const handleAddTag = async (tagName, tagColor) => {
+    const newTag = { name: tagName, color: tagColor };
+    setAssignedTags([...assignedTags, newTag]);
 
     try {
       await axios.post(`${base_url}/stories/${id}/tags`, {
-        tag: tagName,
+        tagName,
+        tagColor,
       });
       fetchStory();
     } catch (error) {
       console.error("Error adding tag:", error);
-      setAssignedTags(assignedTags.filter((t) => t !== tagName));
+      setAssignedTags(assignedTags.filter((t) => t !== newTag));
     }
   };
 
@@ -174,7 +211,7 @@ export default function StoryAttachmentPage() {
               type="text"
               value={editingTitle}
               onChange={(e) => setEditingTitle(e.target.value)}
-              className={`text-[1.75rem] ${isEditing ? "" : "border-b-transparent! px-0!"} h-fit w-full p-4 tracking-widest text-primary-50 border-b-2 border-b-primary-20 hover:border-b-primary-50 focus:border-b-primary-50 outline-none ${isEditing ? "pointer-events-auto" : "pointer-events-none border-0!"} text-5xl w-full`}
+              className={`story-title text-[1.75rem] ${isEditing ? "" : "border-b-transparent! px-0!"} h-fit w-full p-4 tracking-widest text-primary-50 border-b-2 border-b-primary-20 hover:border-b-primary-50 focus:border-b-primary-50 outline-none ${isEditing ? "pointer-events-auto" : "pointer-events-none border-0!"} text-5xl w-full`}
               id="editingTitle"
               readOnly={!isEditing}
             />
@@ -185,28 +222,30 @@ export default function StoryAttachmentPage() {
             <h4 className="uppercase">Tags</h4>
             <div className="flex flex-wrap gap-2 h-fit w-full">
               {assignedTags.length > 0 ? (
-                assignedTags.map((tag, index) => {
-                  const tagData = tags.find((t) => t.name === tag);
-                  return (
-                    <div
-                      key={index}
-                      className="flex justify-start items-center gap-2 p-2 bg-white-dark rounded-xl"
-                      style={
-                        tagData?.color
-                          ? { borderLeft: `3px solid ${tagData.color}` }
-                          : {}
-                      }
-                    >
-                      <p>{tag}</p>
-                      <button
-                        className="flex justify-center items-center min-h-2 p-2 rounded-md bg-white-theme/0 border-none outline-none hover:bg-white-theme/50 hover:text-red-500 cursor-pointer"
-                        onClick={() => handleRemoveTag(tag)}
+                assignedTags
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((tag, index) => {
+                    const tagData = tags.find((t) => t.name === tag.name);
+                    return (
+                      <div
+                        key={index}
+                        className="flex justify-start items-center gap-2 p-2 bg-white-dark rounded-xl"
+                        style={{
+                          borderLeft: tagData.color
+                            ? `3px solid ${tagData.color}`
+                            : "red",
+                        }}
                       >
-                        <FaX className="size-2" />
-                      </button>
-                    </div>
-                  );
-                })
+                        <p>{tag.name}</p>
+                        <button
+                          className="flex justify-center items-center min-h-2 p-2 rounded-md bg-white-theme/0 border-none outline-none hover:bg-white-theme/50 hover:text-red-500 cursor-pointer"
+                          onClick={() => handleRemoveTag(tag)}
+                        >
+                          <FaX className="size-2" />
+                        </button>
+                      </div>
+                    );
+                  })
               ) : (
                 <p>You have not assigned any Tags yet!</p>
               )}
@@ -215,23 +254,27 @@ export default function StoryAttachmentPage() {
         </div>
       </section>
 
+      {/* Available Tags Selection Section */}
       <section className="scriptigo-section">
         <div className="scriptigo-section-wrapper flex-col max-h-36 overflow-y-auto">
           <div className="flex flex-wrap gap-2">
-            {availableTags.map((tag) => (
-              <div
-                key={tag.id}
-                className="flex justify-start items-center gap-2 p-2 bg-white-dark border border-white-light/50 rounded-xl"
-              >
-                <p>{tag.name}</p>
-                <button
-                  className="flex justify-center items-center min-h-2 p-2 rounded-md bg-white-theme/0 border-none outline-none hover:bg-white-theme cursor-pointer"
-                  onClick={() => handleAddTag(tag.name)}
+            {tags
+              // Ikkada filter cheddam bangaram!
+              .filter((tag) => !assignedTags.some((at) => at.name === tag.name))
+              .map((tag) => (
+                <div
+                  key={tag._id}
+                  className="flex justify-start items-center gap-2 p-2 bg-white-dark border border-white-light/50 rounded-xl"
                 >
-                  <FaPlus className="size-2" />
-                </button>
-              </div>
-            ))}
+                  <p className="text-sm">{tag.name}</p>
+                  <button
+                    className="flex justify-center items-center min-h-2 p-2 rounded-md bg-white-theme/0 border-none outline-none hover:bg-white-theme cursor-pointer"
+                    onClick={() => handleAddTag(tag.name, tag.color)}
+                  >
+                    <FaPlus className="size-2" />
+                  </button>
+                </div>
+              ))}
           </div>
         </div>
       </section>

@@ -149,7 +149,6 @@ h6 {
   @apply py-2 px-4 rounded-xl border-2 border-none outline-none cursor-pointer bg-primary-90 text-primary-60 hover:bg-primary-50 hover:text-white hover:shadow-lg hover:shadow-primary-50/50 focus-visible:border-primary-50 focus-visible:shadow-lg focus-visible:shadow-primary-50/50;
   &:hover,
   &:focus-visible {
-
     &.has-element-hover {
       @apply scale-125;
     }
@@ -166,6 +165,9 @@ h6 {
   }
   &.yellow {
     @apply bg-yellow-100 text-yellow-600 hover:bg-yellow-600 hover:text-yellow-100 hover:shadow-lg hover:shadow-yellow-500/50 focus-visible:border-yellow-500 focus-visible:shadow-lg focus-visible:shadow-red-500/50;
+  }
+  &.pink {
+    @apply bg-pink-100 text-pink-600 hover:bg-pink-600 hover:text-pink-100 hover:shadow-lg hover:shadow-pink-500/50 focus-visible:border-pink-500 focus-visible:shadow-lg focus-visible:shadow-red-500/50;
   }
 }
 
@@ -193,11 +195,11 @@ header {
 }
 
 .scriptigo-page {
-  @apply flex flex-col justify-start items-center gap-6 min-h-screen w-full max-w-7xl pt-6 pb-20;
+  @apply flex flex-col justify-start items-center gap-6 min-h-screen w-full pt-6 pb-20;
 }
 
 .scriptigo-section {
-  @apply flex justify-center items-center h-fit w-full px-12;
+  @apply flex justify-center items-center h-fit w-full max-w-7xl px-12;
 
   & > .scriptigo-section-wrapper {
     @apply flex justify-start items-start h-fit w-full;
@@ -325,5 +327,14 @@ input[type="number"]::-webkit-outer-spin-button {
   @apply bg-linear-to-b from-primary-50 to-primary-20 border-4 border-white-dark rounded-xl;
 }
 ::-webkit-scrollbar-thumb:hover {
-  @apply  to-primary-10;
+  @apply to-primary-10;
+}
+
+.white-scrollbar {
+  & ::-webkit-scrollbar {
+    @apply bg-white-light rounded-xl;
+  }
+  & ::-webkit-scrollbar-thumb {
+    @apply border-white-light;
+  }
 }

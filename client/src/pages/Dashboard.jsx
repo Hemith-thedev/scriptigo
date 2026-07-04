@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import axios from "axios";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+
+// registering the hooks
 
 const UsernameWindow = ({ condition, oncancel, onsubmit }) => {
   const [username, setUsername] = useState(() => {
@@ -49,6 +53,41 @@ const UsernameWindow = ({ condition, oncancel, onsubmit }) => {
 };
 
 export default function Dashboard() {
+  useGSAP(
+    () => {
+      // Title fade in
+      gsap.to(".gsap-opacity-fade-in", {
+        opacity: 1,
+        duration: 1,
+        delay: 0.1,
+        ease: "power2.out",
+      });
+
+      // KPI cards annee oka timeline flow lo raavali
+      const tl = gsap.timeline({ delay: 0.5 });
+
+      // Okkokka card lo unna h1 (number) and p (label) ni sequence ga animate cheyyali
+      tl.to(".kpi-card", {
+        opacity: 1,
+        y: 0,
+        duration: 0.5,
+        stagger: {
+          each: 0.3, // Prati card ki 0.3s gap
+          onStart: function () {
+            // Card loni elements ni animate cheyyadam
+            const target = this.targets()[0];
+            gsap.fromTo(
+              target.querySelectorAll("h1, p"),
+              { opacity: 0, y: 10 },
+              { opacity: 1, y: 0, duration: 0.4, stagger: 0.15 },
+            );
+          },
+        },
+        ease: "back.out(1.7)",
+      });
+    },
+    { scope: ".scriptigo-page" },
+  );
   const [genres, setGenres] = useState([]);
   const [stories, setStories] = useState([]);
   const [tags, setTags] = useState([]);
@@ -105,7 +144,7 @@ export default function Dashboard() {
         <div />
         <section className="scriptigo-section top-gap">
           <div className="scriptigo-section-wrapper">
-            <h2>
+            <h2 className="gsap-opacity-fade-in opacity-0">
               Welcome{" "}
               <button
                 className="highlight gradient username-span"
@@ -123,7 +162,8 @@ export default function Dashboard() {
             <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-8 h-fit w-full">
               {[
                 {
-                  label: stories.length < 2 && stories === 0 ? "Story" : "Stories",
+                  label:
+                    stories.length < 2 && stories === 0 ? "Story" : "Stories",
                   count: stories.length,
                   path: "/stories",
                 },
@@ -139,7 +179,11 @@ export default function Dashboard() {
                 },
                 // { label: "Links", path: "/link-to" },
               ].map((card, index) => (
-                <NavLink key={index} className="kpi-card" to={card.path}>
+                <NavLink
+                  key={index}
+                  className="kpi-card opacity-0"
+                  to={card.path}
+                >
                   <div className="flex bg-white-dark shadow-md p-8 rounded-3xl hover:shadow-2xl hover:shadow-primary-50/90 hover:text-primary-50 hover:text-shadow-lg hover:text-shadow-primary-50/10">
                     <h1>{card.count}</h1>
                     <p>{card.label}</p>
@@ -157,7 +201,9 @@ export default function Dashboard() {
             <div className="flex justify-start items-start h-fit w-full bg-white-dark p-4 rounded-3xl shadow-xl hover:shadow-2xl hover:shadow-primary-50/90">
               <div className="flex flex-col justify-start items-start gap-2 h-fit w-full">
                 <div className="flex justify-between items-start h-fit w-full">
-                  <h5 className="p-4 bg-white-dark shadow-md rounded-xl hover:shadow-2xl hover:shadow-primary-50/50">Story: The Purple Love💜</h5>
+                  <h5 className="p-4 bg-white-dark shadow-md rounded-xl hover:shadow-2xl hover:shadow-primary-50/50">
+                    Story: The Purple Love💜
+                  </h5>
                   <button className="primary-button green">Let's Go!</button>
                 </div>
                 <div className="flex flex-col justify-start items-start rounded-2xl">

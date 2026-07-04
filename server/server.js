@@ -45,7 +45,12 @@ const StorySchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true },
     genres: [{ type: String, required: true }],
-    tags: [{ type: String }],
+    tags: [
+      {
+        name: { type: String, required: true },
+        color: { type: String, required: true },
+      },
+    ],
     characters: [
       {
         _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
@@ -60,27 +65,62 @@ const StorySchema = new mongoose.Schema(
 );
 const Story = mongoose.model("Story", StorySchema);
 
-// Fixed Schema definition cleanly to avoid mutation errors
-const ScriptLineSchema = new mongoose.Schema(
+const ScriptSchema = new mongoose.Schema(
   {
     story_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Story",
       required: true,
     },
-    order_id: { type: Number, required: true },
-    type: { type: String, enum: ["scene", "speaking"], required: true },
-    speaker_name: { type: String, default: null },
-    emotion: { type: String, default: null },
-    action: { type: String, default: null },
-    vocal: { type: String, required: true },
-    is_hidden: { type: Boolean, default: false },
-    is_important: { type: Boolean, default: false },
-    tags: [{ type: mongoose.Schema.Types.ObjectId, ref: "Tag" }],
+    scene_id: {
+      type: String,
+      required: true,
+      index: true,
+    },
+    order_id: {
+      type: Number,
+      required: true,
+    },
+    type: {
+      type: String,
+      enum: ["scene", "speaking"],
+      required: true,
+    },
+    speaker_name: {
+      type: String,
+      default: null,
+    },
+    emotions: {
+      type: [String],
+      default: [],
+    },
+    action: {
+      type: String,
+      default: null,
+    },
+    vocal: [
+      {
+        type: String,
+      },
+    ],
+    is_hidden: {
+      type: Boolean,
+      default: false,
+    },
+    is_important: {
+      type: Boolean,
+      default: false,
+    },
+    tags: [
+      {
+        type: String,
+      },
+    ],
   },
   { timestamps: true },
 );
-const Script = mongoose.model("Script", ScriptLineSchema);
+ScriptSchema.index({ story_id: 1, order_id: 1 });
+const Script = mongoose.model("Script", ScriptSchema);
 
 const ExportSchema = new mongoose.Schema(
   {
@@ -423,11 +463,11 @@ app.delete("/api/stories/:id", async (req, res) => {
 
 app.post("/api/stories/:id/tags", async (req, res) => {
   const { id } = req.params;
-  const { tag } = req.body;
-  if (!tag)
+  const { tagName, tagColor } = req.body;
+  if (!tagName || !tagColor)
     return res
       .status(400)
-      .json({ status: "error", message: "Tag name is required" });
+      .json({ status: "error", message: "Tag name & color are required" });
 
   try {
     const story = await Story.findById(id);
@@ -436,15 +476,22 @@ app.post("/api/stories/:id/tags", async (req, res) => {
         .status(404)
         .json({ status: "error", message: "Story not found" });
 
+    const newTag = {
+      name: tagName,
+      color: tagColor,
+    };
+
     // Check if tag already exists in story
-    if (story.tags.includes(tag)) {
+    if (
+      story.tags.some((tag) => tag.name === tagName || tag.color === tagColor)
+    ) {
       return res.status(409).json({
         status: "error",
         message: "Tag already assigned to this story",
       });
     }
 
-    story.tags.push(tag);
+    story.tags.push(newTag);
     await story.save();
     res
       .status(200)
@@ -584,19 +631,17 @@ app.post("/api/stories/:id/characters", async (req, res) => {
       data: story,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        status: "error",
-        message: "Failed to add character to story",
-      });
+    res.status(500).json({
+      status: "error",
+      message: "Failed to add character to story",
+    });
   }
 });
 
 app.delete("/api/stories/:id/character/:characterId", async (req, res) => {
   // Clear ga characterId ani param name pettukundham bujji!
-  const { id, characterId } = req.params; 
-  
+  const { id, characterId } = req.params;
+
   try {
     const story = await Story.findById(id);
     if (!story) {
@@ -607,11 +652,11 @@ app.delete("/api/stories/:id/character/:characterId", async (req, res) => {
 
     // Ikada mana characters array nundi matching id unna character ni tesedham! ✨
     story.characters = story.characters.filter(
-      (c) => c._id.toString() !== characterId
+      (c) => c._id.toString() !== characterId,
     );
 
     await story.save();
-    
+
     res.status(200).json({
       status: "success",
       message: "Character removed from story successfully",
@@ -630,36 +675,38 @@ app.put("/api/stories/:id/character/:characterId", async (req, res) => {
 
   // 1. Minimum validation check
   if (!character || !character.name || !character.role) {
-    return res.status(400).json({ 
-      status: "error", 
-      message: "Character name and role are required for updates" 
+    return res.status(400).json({
+      status: "error",
+      message: "Character name and role are required for updates",
     });
   }
 
   try {
     const story = await Story.findById(id);
     if (!story) {
-      return res.status(404).json({ 
-        status: "error", 
-        message: "Story not found" 
+      return res.status(404).json({
+        status: "error",
+        message: "Story not found",
       });
     }
 
     // 2. Find the target character inside the characters array
     const targetCharacter = story.characters.id(characterId);
     if (!targetCharacter) {
-      return res.status(404).json({ 
-        status: "error", 
-        message: "Character not found in this story" 
+      return res.status(404).json({
+        status: "error",
+        message: "Character not found in this story",
       });
     }
 
     // 3. Duplicate logic (skip checking against the character we are currently updating)
-    const normalizedInputAge = character.age ? String(character.age).toLowerCase().trim() : "";
-    
+    const normalizedInputAge = character.age
+      ? String(character.age).toLowerCase().trim()
+      : "";
+
     const isDuplicate = story.characters.some((c) => {
       if (c._id.toString() === characterId) return false; // Skip itself
-      
+
       const existingAge = c.age ? String(c.age).toLowerCase().trim() : "";
       return (
         c.name.toLowerCase().trim() === character.name.toLowerCase().trim() &&
@@ -671,7 +718,8 @@ app.put("/api/stories/:id/character/:characterId", async (req, res) => {
     if (isDuplicate) {
       return res.status(409).json({
         status: "error",
-        message: "Another character with these details already exists in this story",
+        message:
+          "Another character with these details already exists in this story",
       });
     }
 
@@ -697,7 +745,6 @@ app.put("/api/stories/:id/character/:characterId", async (req, res) => {
   }
 });
 
-
 // ==========================================
 // SCRIPTS ROUTES 📜
 // ==========================================
@@ -705,6 +752,7 @@ app.put("/api/stories/:id/character/:characterId", async (req, res) => {
 app.post("/api/scripts", async (req, res) => {
   const {
     story_id,
+    is_next_scene,
     order_id,
     type,
     speaker_name,
@@ -713,15 +761,31 @@ app.post("/api/scripts", async (req, res) => {
     vocal,
     is_important,
   } = req.body;
-  if (!story_id || !vocal || !type)
-    return res
-      .status(400)
-      .json({ status: "error", message: "Required fields missing" });
+  if (!story_id || !type) {
+    return res.status(400).json({
+      status: "error",
+      message: "Required fields (story_id, type) missing!",
+    });
+  }
 
   try {
+    let targetSceneId;
+    const lastScript = await Script.findOne({ story_id }).sort({
+      createdAt: -1,
+    });
+    const order = lastScript ? lastScript.order_id + 1 : 1;
+    if (is_next_scene) {
+      const currentNumber = lastScript
+        ? parseInt(lastScript.scene_id.split("_")[1])
+        : 0;
+      targetSceneId = `scene_${currentNumber + 1}`;
+    } else {
+      targetSceneId = lastScript ? lastScript.scene_id : "scene_1";
+    }
     const newLine = new Script({
       story_id,
-      order_id,
+      scene_id: targetSceneId,
+      order_id: order,
       type,
       speaker_name,
       emotion,
@@ -730,11 +794,65 @@ app.post("/api/scripts", async (req, res) => {
       is_important: is_important || false,
     });
     await newLine.save();
-    res.status(201).json({ status: "success", id: newLine._id });
+    res
+      .status(201)
+      .json({ status: "success", id: newLine._id, scene_id: targetSceneId });
   } catch (error) {
+    console.error(error);
     res
       .status(500)
       .json({ status: "error", message: "Failed to add script line" });
+  }
+});
+
+// Updated Route
+app.post("/api/scripts/:story_id/vocals", async (req, res) => {
+  const { story_id } = req.params;
+  const { is_next_scene, speaker_name, emotions, action, vocal, is_important } =
+    req.body;
+
+  try {
+    // 1. Last record ni fetch chesi scene_id and order_id ni decide cheddam
+    const lastScript = await Script.findOne({ story_id }).sort({
+      createdAt: -1,
+    });
+
+    // 2. Logic for Scene ID (Automatic increment)
+    let targetSceneId;
+    if (is_next_scene) {
+      const currentNumber = lastScript
+        ? parseInt(lastScript.scene_id.split("_")[1])
+        : 0;
+      targetSceneId = `scene_${currentNumber + 1}`;
+    } else {
+      targetSceneId = lastScript ? lastScript.scene_id : "scene_1";
+    }
+
+    // 3. Logic for Order ID (Sequential)
+    const order = lastScript ? lastScript.order_id + 1 : 1;
+
+    // 4. Saving the vocal part
+    const newVocal = new Script({
+      story_id,
+      scene_id: targetSceneId,
+      order_id: order,
+      type: "speaking",
+      speaker_name,
+      emotions: Array.isArray(emotions) ? emotions : emotions ? [emotions] : [],
+      action: action,
+      vocal,
+      is_important: is_important || false,
+    });
+
+    await newVocal.save();
+    res.status(201).json({
+      status: "success",
+      message: "Vocal saved, bangaaru! 🎉",
+      scene_id: targetSceneId,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: "error", message: "Vocal save avvaledhu!" });
   }
 });
 
@@ -743,17 +861,69 @@ app.get("/api/stories/:story_id/scripts", async (req, res) => {
   const { include_hidden } = req.query;
 
   try {
-    let filters = { story_id: story_id };
-    if (include_hidden !== "true") filters.is_hidden = false;
+    // ID ni string nunchi ObjectId ki convert cheyyali!
+    let matchFilter = { story_id: new mongoose.Types.ObjectId(story_id) };
+    if (include_hidden !== "true") matchFilter.is_hidden = false;
 
-    const rows = await Script.find(filters)
-      .populate("tags")
-      .sort({ order_id: 1 });
+    // Numerical sort kosam aggregation pipeline
+    const rows = await Script.aggregate([
+      { $match: matchFilter },
+      {
+        $addFields: {
+          sceneNumber: {
+            $toInt: { $arrayElemAt: [{ $split: ["$scene_id", "_"] }, 1] },
+          },
+        },
+      },
+      { $sort: { sceneNumber: 1, order_id: 1 } },
+      { $project: { sceneNumber: 0 } }, // Sorting tarvata extra field remove chestham
+    ]);
+
     res.status(200).json({ status: "success", data: rows });
   } catch (error) {
+    res
+      .status(500)
+      .json({ status: "error", message: "Error compiling script elements" });
+  }
+});
+
+app.put("/api/scripts/arrange/:story_id", async (req, res) => {
+  const { story_id } = req.params;
+  const { from_id, to_id } = req.body;
+
+  try {
+    const fromItem = await Script.findOne({ _id: from_id, story_id });
+    const toItem = await Script.findOne({ _id: to_id, story_id });
+
+    if (!fromItem || !toItem) {
+      return res.status(404).json({
+        status: "error",
+        message: "Script elements not found",
+      });
+    }
+
+    // Swap scene_id and order_id
+    const tempScene = fromItem.scene_id;
+    const tempOrder = fromItem.order_id;
+
+    fromItem.scene_id = toItem.scene_id;
+    fromItem.order_id = toItem.order_id;
+
+    toItem.scene_id = tempScene;
+    toItem.order_id = tempOrder;
+
+    await fromItem.save();
+    await toItem.save();
+
+    res.status(200).json({
+      status: "success",
+      message: "Script order rearranged successfully",
+    });
+  } catch (error) {
+    console.error("Error rearranging script:", error);
     res.status(500).json({
       status: "error",
-      message: "Error compiling script elements mapping",
+      message: "Failed to rearrange script elements",
     });
   }
 });

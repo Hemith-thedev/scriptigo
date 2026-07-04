@@ -15,6 +15,8 @@
     "axios": "^1.16.1",
     "gasp": "^0.0.2",
     "gsap": "^3.15.0",
+    "html2canvas-pro": "^2.2.0",
+    "jspdf": "^4.2.1",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-icons": "^5.6.0",
